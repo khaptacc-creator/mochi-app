@@ -1104,6 +1104,65 @@ I_SPEAK.push(
 {lv:'C1',t:'Chủ đề: Giáo dục',p1:['What subject did you enjoy most at school?','Do you think you will study something new in the future?','How do you usually learn new things?','Did you have a favourite teacher?'],p2:'Describe a skill you learned that was difficult at first.\nYou should say:\n– what the skill was\n– how you learned it\n– what difficulties you faced\nand explain how you feel about it now.',p3:['Should university education be free for everyone?','Will online learning replace traditional classrooms?','What qualities make a good teacher?'],model:'One skill that was extremely challenging for me at first was public speaking. At university I had to give presentations in almost every course, and I used to get so nervous that my voice would shake and my mind would go blank. To overcome this, I joined a public speaking club that met every Thursday evening. We practised short impromptu speeches and gave each other feedback on things like eye contact, pace and structure. The biggest difficulty was managing my anxiety; it took me several months before I could speak without notes. Looking back, I am really proud of how far I have come. Nowadays I actually enjoy presenting at work, and I believe this skill has boosted my confidence in many other areas of my life.'}
 );
 
+/* Ngữ pháp bổ sung theo lộ trình TOEIC 4 giai đoạn (Ms Hoa) – Claude biên soạn. eg23–eg30 */
+EN_GRAM.push(
+{lv:'A2',t:'Quá khứ tiếp diễn (và khi nào dùng với quá khứ đơn)',p:[['S + was/were + V-ing – đang xảy ra tại một thời điểm trong quá khứ','At 9 a.m. yesterday, we were meeting the client.','9 giờ sáng qua, chúng tôi đang gặp khách hàng.'],['Hành động đang diễn ra (QKTD) bị hành động khác xen vào (QKĐ): while/when','While I was printing the report, the power went out.','Khi tôi đang in báo cáo thì mất điện.'],['Dấu hiệu: at that time, at + giờ + thời gian quá khứ, while','They were discussing the budget when the CEO arrived.','Họ đang bàn ngân sách thì giám đốc đến.']],
+ q:[['When the fire alarm rang, the staff ___ a training session.',['were attending','attended','attend','are attending'],0,'Đang diễn ra thì bị xen ngang → quá khứ tiếp diễn.'],
+ ['At 3 p.m. yesterday, Ms. Park ___ with the suppliers.',['was negotiating','negotiates','has negotiated','negotiate'],0,'Thời điểm cụ thể trong quá khứ → QKTD.'],
+ ['While Mr. Cho ___ the files, he found an error.',['was checking','checks','has checked','check'],0,'while + QKTD.'],
+ ['The phone rang while I ___ lunch.',['was having','had','am having','have'],0,'Hành động đang diễn ra bị cắt ngang.'],
+ ['What ___ you doing at 8 o\'clock last night?',['were','did','was','are'],0,'you → were + V-ing.'],
+ ['The delivery truck ___ when the accident happened.',['was turning','turned','turns','has turned'],0,'Đang rẽ thì tai nạn xảy ra.']]},
+{lv:'B1',t:'Các thì hoàn thành nâng cao (QKHT, QKHTTD, TLHT, TLHTTD)',p:[['Quá khứ hoàn thành: had + V3 – xảy ra TRƯỚC một việc quá khứ khác','The meeting had started before I arrived.','Cuộc họp đã bắt đầu trước khi tôi đến.'],['Quá khứ hoàn thành tiếp diễn: had been + V-ing – kéo dài đến một mốc quá khứ','She had been working there for 5 years when she was promoted.','Cô ấy đã làm ở đó 5 năm thì được thăng chức.'],['Tương lai hoàn thành: will have + V3 – xong trước một mốc tương lai (by + thời gian)','By next Friday, we will have finished the project.','Trước thứ Sáu tới, chúng tôi sẽ hoàn thành dự án.'],['Tương lai hoàn thành tiếp diễn: will have been + V-ing – kéo dài đến mốc tương lai','By June, he will have been working here for ten years.','Đến tháng Sáu, anh ấy sẽ làm ở đây tròn 10 năm.']],
+ q:[['By the time the manager arrived, the guests ___.',['had already left','have already left','already leave','will leave'],0,'By the time + QKĐ → mệnh đề kia QKHT.'],
+ ['By the end of this year, the company ___ three new stores.',['will have opened','has opened','had opened','opens'],0,'By the end of + tương lai → TLHT.'],
+ ['The team ___ on the design for months before the client approved it.',['had been working','has been working','will be working','works'],0,'Kéo dài đến mốc quá khứ → QKHTTD.'],
+ ['By 2030, Mr. Kim ___ for the firm for 20 years.',['will have been working','had been working','has worked','is working'],0,'Kéo dài tới mốc tương lai → TLHTTD.'],
+ ['After she ___ the contract, she sent it to the legal team.',['had reviewed','has reviewed','will review','reviews'],0,'Việc xảy ra trước → QKHT.'],
+ ['We ___ the shipment by the time you receive this email.',['will have sent','had sent','have sent','sent'],0,'by the time + hiện tại (tương lai) → TLHT.']]},
+{lv:'B1',t:'Câu trực tiếp – gián tiếp (reported speech)',p:[['Lùi thì: hiện tại → quá khứ, quá khứ/HTHT → QKHT, will → would, can → could','"I am busy." → She said (that) she was busy.','Cô ấy nói rằng cô ấy bận.'],['Đổi trạng từ: now → then, today → that day, tomorrow → the next day, yesterday → the day before, here → there, this → that','"I will call you tomorrow." → He said he would call me the next day.','Anh ấy nói sẽ gọi cho tôi ngày hôm sau.'],['Câu hỏi: asked + if/whether / từ để hỏi + S + V (không đảo)','"Where is the office?" → She asked where the office was.','Cô ấy hỏi văn phòng ở đâu.']],
+ q:[['"I will send the report tomorrow." → Ms. Lee said she ___ the report the next day.',['would send','will send','sends','has sent'],0,'will → would khi lùi thì.'],
+ ['He asked me ___ I had received his email.',['whether','what','that','which'],0,'Câu hỏi Yes/No → if/whether.'],
+ ['"We are moving to a new office now." → They said they were moving to a new office ___.',['then','now','tomorrow','here'],0,'now → then.'],
+ ['The client asked where the meeting room ___.',['was','is it','was it','be'],0,'Câu hỏi gián tiếp không đảo ngữ, lùi thì.'],
+ ['"I met him yesterday." → She said she had met him ___.',['the day before','yesterday','the next day','today'],0,'yesterday → the day before.'],
+ ['The manager told us ___ late for the meeting.',['not to be','to not being','not be','don\'t be'],0,'Mệnh lệnh phủ định gián tiếp: told sb not to V.']]},
+{lv:'B1',t:'Mệnh đề quan hệ: bắt buộc dùng “that” & rút gọn mệnh đề quan hệ',p:[['Bắt buộc that: sau so sánh nhất, the first/last/only, all/everything/nothing, và khi tiền ngữ gồm cả người lẫn vật','This is the best offer that we have received.','Đây là đề nghị tốt nhất chúng tôi nhận được.'],['Rút gọn chủ động → V-ing','The employees working in this building must wear badges. (= who work)','Nhân viên làm việc trong tòa nhà này phải đeo thẻ.'],['Rút gọn bị động → V3/ed','The documents sent yesterday contain errors. (= which were sent)','Các tài liệu được gửi hôm qua có lỗi.']],
+ q:[['Applicants ___ for the position must submit a résumé.',['applying','applied','apply','to applying'],0,'Chủ động → V-ing (who apply).'],
+ ['The products ___ in this factory are exported to Japan.',['made','making','make','makes'],0,'Bị động → V3 (which are made).'],
+ ['She was the only person ___ knew the password.',['that','which','whom','whose'],0,'the only → that.'],
+ ['All the information ___ you need is in the folder.',['that','who','whom','what'],0,'all → that.'],
+ ['The report ___ by the finance team will be reviewed tomorrow.',['prepared','preparing','prepares','to prepare'],0,'Báo cáo được chuẩn bị → V3.'],
+ ['Passengers ___ to Hanoi should go to Gate 5.',['traveling','traveled','travel','are traveling'],0,'Chủ động → V-ing.']]},
+{lv:'B2',t:'So sánh kép (The more…, the more…) & so sánh lũy tiến',p:[['The + so sánh hơn + S + V, the + so sánh hơn + S + V','The earlier you book, the cheaper the tickets are.','Đặt càng sớm, vé càng rẻ.'],['The more + N + S + V, the more…','The more customers we have, the more staff we need.','Càng nhiều khách, càng cần nhiều nhân viên.'],['Lũy tiến: so sánh hơn + and + so sánh hơn','Prices are getting higher and higher.','Giá ngày càng cao.']],
+ q:[['The more you practice, ___ you will become.',['the more confident','more confident','the most confident','most confident'],0,'The more…, the + so sánh hơn.'],
+ ['___ the deadline approaches, the busier the team gets.',['The closer','Closer','The closest','Close'],0,'The + so sánh hơn ở cả hai vế.'],
+ ['The housing market is becoming ___.',['more and more competitive','the more competitive','most competitive','competitive and competitive'],0,'Lũy tiến: more and more + adj dài.'],
+ ['The faster we deliver, ___ our customers are.',['the happier','happier','the happiest','more happy'],0,'happy → happier.'],
+ ['The less you spend now, ___ you can save for next year.',['the more','more','the most','much'],0,'The less…, the more…'],
+ ['Sales grew ___ during the holiday season.',['faster and faster','the faster','more fast','fastest and fastest'],0,'fast → faster and faster.']]},
+{lv:'B2',t:'Câu điều kiện hỗn hợp (mixed conditionals)',p:[['Quá khứ → hiện tại: If + S + had + V3, S + would + V (nguyên thể)','If I had taken that job, I would live in Tokyo now.','Nếu (trước đây) tôi nhận việc đó, giờ tôi đã sống ở Tokyo.'],['Hiện tại → quá khứ: If + S + V2 (were), S + would have + V3','If she were more careful, she would have noticed the mistake.','Nếu cô ấy cẩn thận hơn (tính cách), cô ấy đã nhận ra lỗi.'],['Dấu hiệu: vế điều kiện nói về quá khứ nhưng kết quả có “now / today”','If we had invested earlier, we would be richer today.','Nếu đầu tư sớm hơn, hôm nay ta đã giàu hơn.']],
+ q:[['If the company had hired more staff last year, it ___ short-handed now.',['would not be','would not have been','will not be','is not'],0,'Quá khứ → hiện tại (now): would + V.'],
+ ['If I ___ the training course, I would know how to use this software now.',['had attended','attended','attend','would attend'],0,'Vế if nói quá khứ → had + V3.'],
+ ['If he were more organized, he ___ the deadline last week.',['would have met','would meet','met','had met'],0,'Hiện tại (tính cách) → kết quả quá khứ.'],
+ ['If we had booked the hall in advance, we ___ looking for a venue today.',['would not be','would not have been','will not be','are not'],0,'today → would + V.'],
+ ['If she ___ fluent in Japanese, she would have been sent to Osaka.',['were','had been','is','would be'],0,'Điều kiện hiện tại (vẫn chưa giỏi) → were.'],
+ ['If they had fixed the machine yesterday, production ___ normally now.',['would be running','would have run','will run','runs'],0,'Kết quả hiện tại → would be V-ing.']]},
+{lv:'B2',t:'Liên từ theo cặp & although / despite / in spite of',p:[['both A and B · not only A but also B · either A or B · neither A nor B','The position requires both experience and creativity.','Vị trí này yêu cầu cả kinh nghiệm lẫn sự sáng tạo.'],['Although / Even though + mệnh đề (S + V)','Although the weather was bad, the event was a success.','Dù thời tiết xấu, sự kiện vẫn thành công.'],['Despite / In spite of + N / V-ing (không có mệnh đề)','Despite the bad weather, the event was a success.','Bất chấp thời tiết xấu, sự kiện vẫn thành công.']],
+ q:[['___ the heavy traffic, Mr. Tanaka arrived on time.',['Despite','Although','Because','However'],0,'Sau là cụm danh từ → Despite.'],
+ ['___ sales increased, profits fell slightly.',['Although','Despite','In spite of','Because of'],0,'Sau là mệnh đề → Although.'],
+ ['Applicants can submit their forms either online ___ by mail.',['or','nor','and','but'],0,'either…or.'],
+ ['The new model is not only lighter ___ more energy-efficient.',['but also','and also','or also','as well'],0,'not only…but also.'],
+ ['Neither the manager ___ the assistant was available.',['nor','or','and','but'],0,'neither…nor.'],
+ ['In spite of ___ late, she finished the report.',['starting','she started','start','started'],0,'In spite of + V-ing.']]},
+{lv:'B2',t:'Đại từ: another / other / the other / the others · those / that',p:[['another + N số ít (một cái khác, bất kỳ) · other + N số nhiều (những cái khác)','Could you show me another model? / Other customers liked it.','Cho tôi xem mẫu khác? / Những khách khác thích nó.'],['the other (cái còn lại, xác định) · the others (những cái còn lại, đứng một mình)','One copy is for you; the other is for the manager.','Một bản cho bạn, bản còn lại cho quản lý.'],['that / those thay cho danh từ đã nhắc để tránh lặp; those who = những người mà','Prices this year are higher than those of last year. / Those who register early get a discount.','Giá năm nay cao hơn giá năm ngoái. / Ai đăng ký sớm được giảm giá.']],
+ q:[['Our new printer is faster than ___ in the main office.',['that','those','this','these'],0,'Thay cho “the printer” (số ít) → that.'],
+ ['___ who wish to attend the seminar should register by Friday.',['Those','That','These','Them'],0,'Those who + V.'],
+ ['We have two branches: one is in Hanoi, and ___ is in Da Nang.',['the other','another','other','the others'],0,'Còn đúng một cái còn lại → the other.'],
+ ['Some employees prefer to work from home, while ___ prefer the office.',['others','another','the other','other'],0,'Đứng một mình, số nhiều không xác định → others.'],
+ ['This cup is cracked. Could I have ___ one?',['another','other','the others','others'],0,'another + N số ít.'],
+ ['The sales figures for May were better than ___ for April.',['those','that','these','this'],0,'figures (số nhiều) → those.']]});
+
 /* TOEIC Listening Part 1 & 4 + bổ sung Part 2, 3 – Claude biên soạn theo đúng dạng đề ETS (không phải đề thật).
    Đáp án đúng luôn ở vị trí 0, app tự xáo trộn khi hiển thị. */
 /* Part 1 – Mô tả tranh: [emoji cảnh, mô tả tranh (tiếng Việt), [4 câu A–D], 0] */
@@ -1960,10 +2019,10 @@ const GOALS=[
  {id:'ielts-2',th:'en',ex:'IELTS',big:'5.0',title:'IELTS Phase 2 · Làm quen',sub:'3.5 → 5.0 · dạng bài 4 kỹ năng',tier:'ielts-2'},
  {id:'ielts-3',th:'en',ex:'IELTS',big:'6.0',title:'IELTS Phase 3 · Bứt tốc',sub:'5.0 → 6.0+ · thực chiến đề Cambridge',tier:'ielts-3'},
  {id:'ielts-4',th:'en',ex:'IELTS',big:'7.5',title:'IELTS Phase 4 · End game',sub:'6.5 → 7.5+ · AWL, idioms, full test',tier:'ielts-4'},
- {id:'toeic-1',th:'to',ex:'TOEIC',big:'550',title:'TOEIC 550',sub:'Nền tảng · CEFR A1–A2',tier:'toeic-1'},
- {id:'toeic-2',th:'to',ex:'TOEIC',big:'785',title:'TOEIC 550 → 785',sub:'CEFR B1 · ưu tiên từ đề TOEIC',tier:'toeic-2'},
- {id:'toeic-3',th:'to',ex:'TOEIC',big:'945',title:'TOEIC 785 → 945',sub:'CEFR B2 · ưu tiên từ đề TOEIC',tier:'toeic-3'},
- {id:'toeic-4',th:'to',ex:'TOEIC',big:'990',title:'TOEIC 945 → 990',sub:'CEFR C1',tier:'toeic-4'},
+ {id:'toeic-1',th:'to',ex:'TOEIC',big:'350',title:'TOEIC GĐ1 · 0 → 350',sub:'Mất gốc · 1,5–2 tháng · ngữ pháp nền + Part 1–2',tier:'toeic-1'},
+ {id:'toeic-2',th:'to',ex:'TOEIC',big:'550',title:'TOEIC GĐ2 · 350 → 550',sub:'1,5–2 tháng · thì nâng cao, từ theo chủ đề + Part 3',tier:'toeic-2'},
+ {id:'toeic-3',th:'to',ex:'TOEIC',big:'750',title:'TOEIC GĐ3 · 550 → 750',sub:'2 tháng · luyện đề đều đặn + Part 4',tier:'toeic-3'},
+ {id:'toeic-4',th:'to',ex:'TOEIC',big:'900+',title:'TOEIC GĐ4 · 750 → 900+',sub:'1–2 tháng · luyện đề, sổ lỗi sai, về đích',tier:'toeic-4'},
 ];
 const goalBy=id=>GOALS.find(g=>g.id===id);
 function examOf(g){if(g.ex!=='JLPT'||!g.target)return EXAM[g.ex];const X=examOf.c=examOf.c||{};if(X[g.target])return X[g.target];
@@ -1985,7 +2044,7 @@ const EXAM={
  TOEIC:{name:'TOEIC Listening & Reading',parts:[['Part 1 Tranh ảnh – 6 câu','Listening ~45 phút'],['Part 2 Hỏi–đáp – 25 câu',''],['Part 3 Hội thoại – 39 câu',''],['Part 4 Bài nói ngắn – 30 câu',''],['Part 5 Điền câu – 30 câu','Reading 75 phút'],['Part 6 Điền đoạn văn – 16 câu',''],['Part 7 Đọc hiểu – 54 câu','']],
   score:'200 câu trắc nghiệm trong 2 giờ, thang 10–990 (mỗi phần 5–495). Không có đỗ/trượt – chỉ so với mục tiêu điểm.',
   inputs:[['li','Listening',100],['re','Reading',100]],
-  check:(v,g)=>{const need={'toeic-1':550,'toeic-2':785,'toeic-3':945,'toeic-4':970}[g.id]||785;const L=lcConv('LC',Math.round(v.li.pct*100)),R=lcConv('RC',Math.round(v.re.pct*100));return{txt:`Ước tính Listening ${L} + Reading ${R} = ${L+R}/990 · mục tiêu ≥ ${need}`,pass:L+R>=need,score:L+R}}},
+  check:(v,g)=>{const need={'toeic-1':350,'toeic-2':550,'toeic-3':750,'toeic-4':900}[g.id]||550;const L=lcConv('LC',Math.round(v.li.pct*100)),R=lcConv('RC',Math.round(v.re.pct*100));return{txt:`Ước tính Listening ${L} + Reading ${R} = ${L+R}/990 · mục tiêu ≥ ${need}`,pass:L+R>=need,score:L+R}}},
 };
 const L_JLPT={t:'Đề mẫu chính thức JLPT (jlpt.jp) – PDF + audio + đáp án',u:'https://www.jlpt.jp/e/samples/sampleindex.html'};
 const L_BC={t:'British Council – đề luyện IELTS miễn phí (Listening, Reading, Writing, Speaking)',u:'https://takeielts.britishcouncil.org/prepare/ielts-free-practice-mock-tests/academic'};
@@ -3612,7 +3671,7 @@ const READY_REQ={
  'jlpt-n5':{w:800,k:100,txt:'JLPT N5: ~800 từ, ~100 kanji, ngữ pháp Minna 1–25'},'jlpt-n4':{w:1500,k:300,txt:'JLPT N4: ~1.500 từ, ~300 kanji (tính cả N5), ngữ pháp Minna 26–50'},
  'jlpt-n3':{w:3700,k:650,txt:'JLPT N3: ~3.700 từ, ~650 kanji (cộng dồn)'},'jlpt-n2':{w:6000,k:1000,txt:'JLPT N2: ~6.000 từ, ~1.000 kanji (cộng dồn)'},'jlpt-n1':{w:10000,k:2000,txt:'JLPT N1: ~10.000 từ, ~2.000 kanji (cộng dồn)'},
  'ielts-1':{w:1500,txt:'Band 3.0: ~1.500 từ thông dụng + ngữ pháp căn bản'},'ielts-2':{w:3000,txt:'Band 5.0: ~3.000 từ (B1) + nắm dạng bài 4 kỹ năng'},'ielts-3':{w:4000,txt:'Band 6.0: ~4.000 từ (B2) + chiến thuật làm đề'},'ielts-4':{w:6000,txt:'Band 7.5: ~6.000 từ (C1) + từ học thuật, idioms'},
- 'toeic-1':{w:1500,txt:'TOEIC 550: ~1.500 từ + ngữ pháp Part 5 cơ bản'},'toeic-2':{w:2500,txt:'TOEIC 785: ~2.500 từ + 7 Part'},'toeic-3':{w:4000,txt:'TOEIC 945: ~4.000 từ'},'toeic-4':{w:5000,txt:'TOEIC 990: ~5.000 từ + tốc độ Part 7'}};
+ 'toeic-1':{w:900,txt:'TOEIC 350: ~900 từ A1 + 6 thì cơ bản, bị động, điều kiện, MĐQH · nghe Part 1–2'},'toeic-2':{w:1950,txt:'TOEIC 550: ~1.950 từ (cộng dồn, có từ theo chủ đề TOEIC) · Part 1–3'},'toeic-3':{w:3000,txt:'TOEIC 750: ~3.000 từ + đủ 7 Part, làm trọn đề đúng giờ'},'toeic-4':{w:4300,txt:'TOEIC 900+: ~4.300 từ + tốc độ đọc Part 7, chữa lỗi sai'}};
 const READY_CHAIN={'jlpt-n4':['jlpt-n5'],'jlpt-n3':['jlpt-n5','jlpt-n4'],'jlpt-n2':['jlpt-n5','jlpt-n4','jlpt-n3'],'jlpt-n1':['jlpt-n5','jlpt-n4','jlpt-n3','jlpt-n2'],
  'ielts-2':['ielts-1'],'ielts-3':['ielts-1','ielts-2'],'ielts-4':['ielts-1','ielts-2','ielts-3'],'toeic-2':['toeic-1'],'toeic-3':['toeic-1','toeic-2'],'toeic-4':['toeic-1','toeic-2','toeic-3']};
 function readyCount(g){const ns=flat(pathOf(g));const m=new Map();ns.forEach(n=>(n.type==='day'?n.items:[]).forEach(i=>m.set(i.id,i)));const v=[...m.values()];
@@ -3669,6 +3728,37 @@ function dtGq(n){const out=[];n.tasks.forEach(t=>{if(!t.startsWith('sk:'))return
  const bar=sh.querySelector('.row');if(bar&&!done)bar.insertAdjacentHTML('afterend',`<div class="note" style="margin:10px 0 6px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:180px">⚡ <b>Đã biết nội dung ngày này?</b> Làm thẳng <b>Bài test tổng</b> – đạt ≥ 80% là qua ngày, không cần làm các nhiệm vụ khác.</div><button class="btn sm" data-act="task" data-g="${gid}" data-n="${nid}" data-t="dtest">Làm test ngay</button></div>`);
  if(n.extra&&n.extra.length){const det=sh.querySelector('details');const html=`<details style="margin-top:8px"><summary>🎮 Luyện thêm (không bắt buộc) · ${n.extra.length} trò</summary>${n.extra.map(t=>{const T=taskMeta(t);if(!T)return'';return `<div class="task"><div class="ti">${T.ic}</div><div class="tt"><h4 style="font-size:14.5px">${esc(T.name)}</h4><div class="tiny mute">${esc(T.desc||'')}</div></div><button class="btn ghost sm" data-act="task" data-g="${gid}" data-n="${nid}" data-t="${t}">Chơi</button></div>`}).join('')}</details>`;
   if(det)det.insertAdjacentHTML('beforebegin',html);else sh.insertAdjacentHTML('beforeend',html)}}})();
+
+/* ===== Lộ trình TOEIC 4 giai đoạn theo Anh ngữ Ms Hoa (0→350→550→750→900+) =====
+   GĐ1 0–350 (1,5–2 tháng): 6 thì cơ bản, bị động, điều kiện 1-2-3, MĐQH who/which/that, từ loại & hậu tố · nghe Part 1–2 (nghe chép ≥30′/ngày), chưa luyện đề.
+   GĐ2 350–550 (1,5–2 tháng): thì hoàn thành nâng cao, câu gián tiếp, MĐQH “that” & rút gọn · từ theo cụm/chủ đề (Business, Office, Finance, Restaurant & Events, Health, Travel, Purchasing) · Part 1–2 + Part 3.
+   GĐ3 550–750 (2 tháng): luyện trọn đề đúng giờ · so sánh kép, điều kiện hỗn hợp, liên từ cặp, although/despite, another/other, those/that · thêm Part 4.
+   GĐ4 750–900+ (1–2 tháng): luyện đề, ghi điểm từng lần, ghi sổ lỗi sai và xem lại trước ngày thi. */
+const TOEIC_SRC={t:'Anh ngữ Ms Hoa – Lộ trình TOEIC từ 0 đến 990 cho người mất gốc',u:'https://www.anhngumshoa.com/tin-tuc/lo-trinh-tu-0-990-toeic-danh-cho-nguoi-mat-goc-36902.html'};
+/* Từ vựng mỗi giai đoạn: GĐ1 = A1 · GĐ2 = A2 + từ TOEIC chủ đề · GĐ3 = B1 + từ TOEIC · GĐ4 = B2 */
+(function(){const O={1:EN.T['toeic-1'].slice(),2:EN.T['toeic-2'].slice(),3:EN.T['toeic-3'].slice()};const lv=i=>EN.W[i][6];
+ EN.T['toeic-1']=O[1].filter(i=>lv(i)==='A1');
+ EN.T['toeic-2']=O[2].filter(i=>lv(i)==='T').concat(O[1].filter(i=>lv(i)==='A2'));
+ EN.T['toeic-3']=O[3].filter(i=>lv(i)==='T').concat(O[2].filter(i=>lv(i)==='B1'));
+ EN.T['toeic-4']=O[3].filter(i=>lv(i)==='B2')})();
+const TOEIC_PLAN={
+ 'toeic-1':{gram:[16,17,18,19,22,0,23,1,20,21,2,3,4,9,12,10],parts:[['tp1','tp2']]},
+ 'toeic-2':{gram:[24,25,26,5,6,13,4,10,3],parts:[['tp1','tp2','tp3']]},
+ 'toeic-3':{gram:[27,7,28,12,29,8,30,11,26,24],parts:[['tp3','tp4','tp2','tp6'],['tp3','tp4','tp7','tp6','tp1','tp2']],mockEvery:2},
+ 'toeic-4':{gram:[14,11,13,30,29,28,27,26,25,24],parts:[['tp7','tp4','tp6','tp3','tp2','tp1']],mockEvery:2}};
+(function(){const _sp=skillPool;skillPool=function(g){const P=g&&TOEIC_PLAN[g.id];if(!P)return _sp(g);
+ const gram=P.gram.map(i=>'eg'+i).filter(id=>SK[id]);const nd=Math.ceil(EN.T[g.tier].length/PER);const seq=[];const idx={};let gi=0,oi=0;
+ for(let k=0;k<nd;k++){if(k%2===0){seq.push(gram[gi++%gram.length]);continue}
+  const parts=P.parts[Math.min(P.parts.length-1,Math.floor(k/nd*P.parts.length))];const pp=parts[oi++%parts.length];const a=Object.values(SK).filter(s=>s.id.startsWith(pp+'_')).map(s=>s.id);
+  if(!a.length){seq.push(gram[gi++%gram.length]);continue}idx[pp]=idx[pp]||0;seq.push(a[idx[pp]++%a.length])}
+ return seq}})();
+/* GĐ3–GĐ4: luyện trọn 1 đề ETS đúng giờ sau mỗi 2 phần (≈ 6 ngày) – chấm trong “Phòng luyện đề”, nhập điểm để theo dõi tiến bộ */
+(function(){const _p=pathOf;pathOf=function(g){const units=_p(g);const P=g&&TOEIC_PLAN[g.id];if(!P||units._toeic)return units;units._toeic=1;
+ if(P.mockEvery){let k=0;units.forEach((u,ui)=>{if(ui%P.mockEvery!==P.mockEvery-1||ui===units.length-1)return;k++;
+  u.nodes.push({id:'drill'+k,type:'mock',label:'Luyện trọn đề #'+k,sub:'Đề ETS · 200 câu · 120 phút',links:[L_ETS,L_ETSP],tasks:['mock'],
+   note:'Theo lộ trình GĐ'+(g.id==='toeic-3'?'3':'4')+': làm trọn 1 đề trong đúng 120 phút (in phiếu trả lời để tập tô), chấm điểm rồi nhập số câu đúng. Câu sai ghi vào “Sổ lỗi” và xem lại trước ngày thi.'})})}
+ units.forEach(u=>u.nodes.forEach(n=>{if(n.type==='mock'&&n.links&&!n.links.includes(TOEIC_SRC))n.links=n.links.concat([TOEIC_SRC])}));
+ return units}})();
 
 {const l=document.getElementById("logoM");if(l)l.innerHTML=mochiSVG(42,"happy");}render(); setTimeout(initSync,0);
 if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})})}</script></body></html>
