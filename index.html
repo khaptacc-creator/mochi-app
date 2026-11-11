@@ -4274,14 +4274,15 @@ ACT.etsNode2=d=>{const g=goalBy(d.g),n=findNode(g,d.n);if(!g||!n)return;const P=
  sh.insertAdjacentHTML('beforeend',`<div style="margin-top:12px"><div class="tiny mute" style="font-weight:800;letter-spacing:.06em">ĐỀ ETS THẬT · ${esc(ETS_LV[P.lv].name)}</div>
   ${row('R','📘','Đọc ETS · ~'+P.nR+' câu','Part '+P.R.join(', ')+' · chọn câu chưa làm · có lời giải chi tiết',cR)}${row('L','🎧','Nghe ETS · ~'+P.nL+' câu','Part '+P.L.join(', ')+' · audio + transcript · có lời giải chi tiết',cL)}</div>`)}})();
 /* từ vựng & ngữ pháp hay gặp trong đề */
+const ETS_STOP=new Set('a an the by as at in on of for to from with and or but if so be is are was were do does did have has had it its this that these those he she they we you i me my our your their his her them us man woman men women speaker speakers people person thing get got go went come make made say said tell told know think want like look see good new one two some any all more most very not no yes ok okay well just also then than there here what which who when where why how about up out over into'.split(' '));
 function etsFreq(){const B=ETS.bank;if(!B)return null;if(etsFreq.c&&etsFreq.c.n===B.tests.length)return etsFreq.c;
  const V={},G={};const txt=[];
  for(const T of B.tests){if(!etsHasKey(T.id))continue;const gm={};T.g.forEach(g=>{for(let n=g.from;n<=g.to;n++)gm[n]=g});
   for(const n in T.q){const q=T.q[n];const g=gm[n];txt.push([q.stem,...(q.o||[]),...(q.oT||[]),q.tq||'',g&&g.tr&&+n===g.from?g.tr:''].join(' ').toLowerCase());
    if(q.gr!=null&&q.gr>=0){G[q.gr]=G[q.gr]||{n:0,R:0,L:0};G[q.gr].n++;G[q.gr][T.sk==='L'?'L':'R']++}
    (q.vo||[]).forEach(([w,m])=>{const h=String(w).replace(/\s*\([^)]*\)\s*$/,'').trim().toLowerCase();if(!h||h.length<2)return;const e=V[h]=V[h]||{w:h,pos:(String(w).match(/\(([^)]*)\)\s*$/)||[])[1]||'',m,q:0,lv:9,sk:{}};e.q++;e.lv=Math.min(e.lv,q.lv||9);e.sk[T.sk||'R']=1})}}
- const all=txt.join('\n');const vs=Object.values(V);vs.forEach(e=>{const re=new RegExp('\\b'+e.w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s+')+(e.w.includes(' ')?'':'(s|es|ed|d|ing|ly)?')+'\\b','g');e.f=(all.match(re)||[]).length;e.score=e.f+e.q*2});
- vs.sort((a,b)=>b.score-a.score);etsFreq.c={n:B.tests.length,V:vs,G};return etsFreq.c}
+ const all=txt.join('\n');const vs=Object.values(V);vs.forEach(e=>{const re=new RegExp('\\b'+e.w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s+')+(e.w.includes(' ')?'':'(s|es|ed|d|ing|ly)?')+'\\b','g');e.f=(all.match(re)||[]).length;e.score=e.q*4+Math.min(e.f,30)-(ETS_STOP.has(e.w)?999:0)});
+ const vv=vs.filter(e=>e.score>-500);vv.sort((a,b)=>b.score-a.score);vs.length=0;vs.push(...vv);etsFreq.c={n:B.tests.length,V:vs,G};return etsFreq.c}
 function etsVocItem(e){const ei=itemById&&itemById('en:'+e.w);if(ei)return ei;return{id:'ev:'+e.w,front:e.w,reading:'',pos:e.pos,back:e.m,example:'',alts:[e.w],typeAns:e.w,speak:e.w,lang:'en-US',kind:'vocab'}}
 (function(){const _i=itemById;itemById=function(id){const r=_i(id);if(r||!/^ev:/.test(id))return r;const F=etsFreq();const e=F&&F.V.find(x=>x.w===id.slice(3));return e?etsVocItem(e):null}})();
 function etsFreqOpen(){const F=etsFreq();if(!F)return toast('Kho đề chưa tải xong');const lv=S.etsFreqLv||etsLevel();const lim=S.etsFreqN||60;
