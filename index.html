@@ -4080,12 +4080,13 @@ function etsHasKey(t){const k=ETS.keys[t];if(!k)return false;const T=ETS.bank&&E
 /* ---- chọn câu theo trình độ ---- */
 const ETS_LV={1:{name:'Cơ bản (GĐ1 · 0→350)',p5:[101,112],p6:false,p7:[147,152]},2:{name:'Sơ trung cấp (GĐ2 · 350→550)',p5:[101,120],p6:true,p7:[147,160]},3:{name:'Trung cấp (GĐ3 · 550→750)',p5:[101,130],p6:true,p7:[147,185]},4:{name:'Nâng cao (GĐ4 · 750→900+)',p5:[113,130],p6:true,p7:[147,200]}};
 function etsLevel(){const g=(S.prog&&Object.keys(S.prog).filter(k=>/^toeic-\d/.test(k)).sort().pop())||'';const v=S.etsLv||+((g.match(/toeic-(\d)/)||[])[1])||2;return Math.min(4,Math.max(1,v))}
-function etsUnits(o){/* o:{parts:[5,6,7], lv, tests:[], p7:[a,b], onlyKey} → [{t,from,to,g?}] */const B=ETS.bank;if(!B)return[];const L=ETS_LV[o.lv||etsLevel()];const out=[];
+function etsUnits(o){/* o:{parts:[5,6,7], lv, tests:[], p7:[a,b], onlyKey} → [{t,from,to,g?}] */const B=ETS.bank;if(!B)return[];const lv=o.lv||etsLevel(),L=ETS_LV[lv],OK=ETS_LVOK[lv],lvf=o.lvFilter!==false;const out=[];
  for(const T of B.tests){if(o.tests&&!o.tests.includes(T.id))continue;if(o.onlyKey!==false&&!etsHasKey(T.id))continue;
-  if(o.parts.includes(5))for(let n=101;n<=130;n++){if(!T.q[n]||(o.lvFilter!==false&&(n<L.p5[0]||n>L.p5[1])))continue;out.push({t:T.id,p:5,qs:[n]})}
-  if(o.parts.includes(6)&&(L.p6||o.lvFilter===false))T.g.filter(g=>g.from>=131&&g.to<=146).forEach(g=>out.push({t:T.id,p:6,qs:range(g.from,g.to),g}));
-  if(o.parts.includes(7)){const r=o.p7||(o.lvFilter===false?[147,200]:L.p7);T.g.filter(g=>g.from>=147&&g.from>=r[0]&&g.to<=r[1]).forEach(g=>out.push({t:T.id,p:7,qs:range(g.from,g.to),g}))}}
+  if(o.parts.includes(5))for(let n=101;n<=130;n++){const q=T.q[n];if(!q)continue;if(lvf&&(q.lv?!OK.includes(q.lv):(n<L.p5[0]||n>L.p5[1])))continue;out.push({t:T.id,p:5,qs:[n]})}
+  if(o.parts.includes(6))T.g.filter(g=>g.from>=131&&g.to<=146&&(!lvf||(g.lv?OK.includes(g.lv):L.p6))).forEach(g=>out.push({t:T.id,p:6,qs:range(g.from,g.to),g}));
+  if(o.parts.includes(7)){const r=o.p7||(o.lvFilter===false?[147,200]:L.p7);T.g.filter(g=>g.from>=147&&(o.p7||!lvf||!g.lv?g.from>=r[0]&&g.to<=r[1]:OK.includes(g.lv))).forEach(g=>out.push({t:T.id,p:7,qs:range(g.from,g.to),g}))}}
  return out}
+const ETS_LVOK={1:[1],2:[1,2],3:[2,3],4:[3,4]};/* mức câu hỏi phù hợp với từng giai đoạn TOEIC */
 const range=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
 function seeded(seed){let s=(seed*2654435761)>>>0||1;return()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296}}
 function etsPickN(arr,n,rnd){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor((rnd||Math.random)()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,n)}
@@ -4108,7 +4109,7 @@ async function etsRender(){if(!EX)return;const u=EX.items[EX.i],T=ETS.bank.tests
  const qhtml=u.qs.map(n=>{const q=T.q[n];const a=EX.ans[qk(u.t,n)];const k=EX.show?etsKey(u.t,n):null;
   return `<div class="card" style="padding:14px"><div style="font-weight:700;margin-bottom:8px">${n}. ${esc(q.stem||'').replace(/-{4,}/g,'<span style="display:inline-block;min-width:60px;border-bottom:2px solid var(--acc)">&nbsp;</span>')}</div>
   <div style="display:grid;gap:8px">${[0,1,2,3].map(j=>{const L='ABCD'[j];const sel=a===L,ok=k===L;return `<button class="opt" data-act="etsPick" data-k="${qk(u.t,n)}" data-v="${L}" style="text-align:left;padding:10px 12px;min-height:44px;${sel?'border-color:var(--acc);background:var(--soft);':''}${k?ok?'border-color:var(--ok);background:#2ecc7122;':sel?'border-color:var(--bad);background:#e74c3c22;':'':''}"><b>(${L})</b> ${esc(q.o[j]||'')}</button>`}).join('')}</div>
-  ${EX.show&&!k?'<div class="tiny mute" style="margin-top:6px">Chưa có đáp án câu này</div>':''}</div>`}).join('');
+  ${EX.show&&!k?'<div class="tiny mute" style="margin-top:6px">Chưa có đáp án câu này</div>':''}${EX.show&&k?`<div class="note" style="margin-top:10px;line-height:1.6"><b>${a===k?'✅ Đúng':a?'❌ Sai – bạn chọn ('+a+')':'⚪ Chưa trả lời'}</b> · Đáp án đúng: <b>(${k})</b>${q.ex?`<div style="margin-top:6px;white-space:pre-wrap">💡 ${esc(q.ex)}</div>`:''}</div>`:''}</div>`}).join('');
  app().innerHTML=`<div class="gtop"><button class="x" data-act="etsQuit">✕</button><div style="flex:1"><div class="tiny mute" style="font-weight:800">${esc(EX.title)} · ${esc(T.bname||'')} · TEST ${String(T.no).padStart(2,'0')} · PART ${u.p}</div><div class="small">Đã làm ${done}/${tot} câu</div></div>${EX.min?`<b id="etsT" style="font-size:20px;font-variant-numeric:tabular-nums">${fmtMs(EX.end-Date.now())}</b>`:''}</div>
  ${pass}${qhtml}
  <div class="row" style="justify-content:space-between;margin-top:10px"><button class="btn ghost sm" data-act="etsNav" data-d="-1" ${EX.i?'':'disabled'}>← Trước</button><span class="small mute">${EX.i+1}/${EX.items.length}</span><button class="btn sm" data-act="etsNav" data-d="1">${EX.i<EX.items.length-1?'Tiếp →':EX.show?'Xem kết quả':'Nộp bài ✓'}</button></div>`;
@@ -4126,7 +4127,7 @@ function etsResult(){const r=EX.result;app().innerHTML=`<div class="gtop"><butto
  <div class="card" style="text-align:center;padding:24px">${r.score!=null?`<div class="tiny mute">ĐIỂM READING QUY ĐỔI</div><div style="font-size:52px;font-weight:900">${r.score}<span class="mute" style="font-size:20px">/495</span></div>`:''}
  <div style="font-size:${r.score!=null?22:48}px;font-weight:900">${r.right}/${r.keyed} câu đúng</div><div class="small mute">${r.keyed?Math.round(r.right/r.keyed*100)+'%':'Chưa có đáp án để chấm'}</div>
  <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px">${[5,6,7].map(p=>`<div class="card" style="padding:10px"><div class="tiny mute">Part ${p}</div><b>${r.byP[p][0]}/${r.byP[p][1]}</b></div>`).join('')}</div></div>
- <div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap"><button class="btn" data-act="etsReview">🔍 Xem lại đáp án</button><button class="btn ghost" data-act="etsQuit">Xong</button></div>`;window.scrollTo(0,0)}
+ <div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap"><button class="btn" data-act="etsReview">🔍 Xem đáp án &amp; giải thích</button><button class="btn ghost" data-act="etsQuit">Xong</button></div>`;window.scrollTo(0,0)}
 /* ---- giao diện tab trong khu TOEIC ---- */
 function etsUpCard(){if(!ACC.key)return `<div class="card"><h3 style="margin:0 0 6px">⬆️ Đăng đề lên kho chung</h3><p class="small">Đăng nhập (tài khoản 1 dòng) để đăng đề – đề bạn đăng sẽ hiện cho <b>mọi người trong nhóm</b>, và chỉ bạn xoá được.</p><button class="btn sm" data-act="acctOpen">👤 Đăng nhập</button></div>`;
  return `<div class="card"><h3 style="margin:0 0 6px">⬆️ Đăng đề lên kho chung</h3><p class="small">Chọn file Word (.docx) đề nhóm tự biên soạn (dạng “TEST 01 … 101. … (A) … Questions 131-134 refer to …”). Sau khi đăng, <b>mọi người dùng app đều thấy và làm được</b> đề này.</p>
@@ -4147,7 +4148,7 @@ function vEtsTab(){if(!ETS.ready){etsLoad();return '<p class="mute">Đang tải 
  return `${off}${legacy}${list}
  ${keyed<B.tests.length?`<div class="note">⚠️ Một số đề chưa có đáp án. Bấm <b>🔑 Đáp án</b> ở bộ đề tương ứng và dán bảng đáp án – chỉ đề có đáp án mới dùng để luyện và chấm điểm. Đáp án nhập vào sẽ dùng chung cho cả nhóm.</div>`:''}
  <div class="card"><h3 style="margin:0 0 6px">🎚️ Trình độ</h3><div style="display:flex;flex-wrap:wrap;gap:6px">${[1,2,3,4].map(k=>`<button class="btn ${k===lv?'':'ghost'} sm" data-act="etsLv" data-v="${k}">${ETS_LV[k].name}</button>`).join('')}</div>
-  <div class="tiny mute" style="margin-top:6px">Part 5: câu ${L.p5[0]}–${L.p5[1]} · Part 6: ${L.p6?'có':'chưa'} · Part 7: câu ${L.p7[0]}–${L.p7[1]}. Mặc định theo giai đoạn TOEIC bạn đang học.</div></div>
+  <div class="tiny mute" style="margin-top:6px">Câu hỏi được chọn theo mức độ gắn sẵn trong đề: ${ETS_LVOK[lv].map(x=>'GĐ'+x).join(' + ')}${lv===1?' (chưa có Part 6)':''}. Đề chưa gắn mức thì lọc theo số câu (Part 5: ${L.p5[0]}–${L.p5[1]}, Part 7: ${L.p7[0]}–${L.p7[1]}). Mặc định theo giai đoạn TOEIC bạn đang học.</div></div>
  <div class="card"><h3 style="margin:0 0 8px">🎯 Luyện theo Part (trình độ đang chọn)</h3><div class="tiny mute" style="margin-bottom:8px">Câu lấy từ tất cả ${B.tests.length} đề (${tq} câu) trong kho chung.</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
   <button class="btn ghost" data-act="etsPrac" data-p="5" ${cnt(5)?'':'disabled'}>✏️ Part 5 · 10 câu<br><span class="tiny mute">kho ${cnt(5)} câu</span></button>
   <button class="btn ghost" data-act="etsPrac" data-p="6" ${cnt(6)?'':'disabled'}>📄 Part 6 · 2 đoạn<br><span class="tiny mute">kho ${cnt(6)} câu</span></button>
