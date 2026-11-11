@@ -3958,7 +3958,7 @@ TH_G.forEach((u,i)=>SK['th'+i]={id:'th'+i,kind:'gram',lang:'en-US',title:'Ngữ 
 function thP5Mix(){const pool=[];TH_G.slice(0,19).forEach(u=>u.q.forEach(q=>pool.push(q)));EN_GRAM.forEach(u=>{if(['B1','B2','C1'].includes(u.lv))u.q.forEach(q=>pool.push(q))});
  SK.tp5_mix={id:'tp5_mix',kind:'gram',lang:'en-US',title:'TOEIC Part 5 · 15 câu ngẫu nhiên',data:{t:'Part 5 ngẫu nhiên',p:[],q:shuffle(pool).slice(0,15)}};return 'tp5_mix'}
 const thMark=(k,v)=>{S.s4=S.s4||{};if(v)S.s4[k]=v;else delete S.s4[k];save()};
-function vToeicHub(){theme('en');const tab=V.tab||'part';const tabs=[['part','🎯 Luyện từng Part'],['gram','📐 Ngữ pháp'],['vocab','📚 Từ vựng'],['tip','💡 Dạng bài & mẹo'],['ets','📘 Đề ETS của tôi']];
+function vToeicHub(){theme('en');const tab=V.tab||'part';const tabs=[['part','🎯 Luyện từng Part'],['gram','📐 Ngữ pháp'],['vocab','📚 Từ vựng'],['tip','💡 Dạng bài & mẹo'],['ets','📘 Đề tự đăng']];
  let body='';
  if(tab==='part'){const p=V.part||0;
   if(!p){body=`<p class="small mute">Chọn một Part để luyện riêng. Mỗi Part có bài luyện ngay trong app và <b>40 đề TOEIC LR Collection</b> trên STUDY4 để luyện đúng Part đó.</p>
@@ -4008,7 +4008,7 @@ Object.assign(ACT,{thOpen:()=>{V={view:'toeichub',tab:'part'};render();scrollTo(
  const _w=vResult;vResult=function(){const h=_w.apply(this,arguments);return window._thBack?h+`<div style="text-align:center;margin-top:10px"><button class="btn ghost" data-act="thBack">← Về Luyện Part & Kiến thức</button></div>`:h};
  ACT.thBack=()=>{const b=window._thBack||{};window._thBack=null;V=Object.assign({view:'toeichub'},b);render();scrollTo(0,0)}})();
 
-/* ===== Đề ETS của tôi: người dùng tự nhập file .docx đề đọc (Part 5–7) + đáp án =====
+/* ===== Đề tự đăng: người dùng tự nhập file .docx đề đọc (Part 5–7) + đáp án =====
    File được đọc NGAY TRONG TRÌNH DUYỆT và lưu ở IndexedDB của máy (ảnh đoạn văn) + đáp án trong tài khoản.
    Nội dung đề KHÔNG nằm trong mã nguồn app / GitHub. */
 const ETS={bank:null,img:{},ready:false};
@@ -4104,12 +4104,12 @@ function etsResult(){const r=EX.result;app().innerHTML=`<div class="gtop"><butto
  <div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap"><button class="btn" data-act="etsReview">🔍 Xem lại đáp án</button><button class="btn ghost" data-act="etsQuit">Xong</button></div>`;window.scrollTo(0,0)}
 /* ---- giao diện tab trong khu TOEIC ---- */
 function vEtsTab(){const B=ETS.bank;if(!ETS.ready){etsLoad().then(()=>{if(V.view==='toeichub'&&V.tab==='ets')render()});return '<p class="mute">Đang tải…</p>'}
- if(!B)return `<div class="card"><h3>📘 Nhập file đề ETS của bạn</h3><p class="small">Chọn file Word (.docx) đề Reading bạn đã tổng hợp (dạng “TEST 01 … 101. … (A) … Questions 131-134 refer to …”). App đọc file <b>ngay trên máy này</b>: câu hỏi và ảnh đoạn văn lưu trong bộ nhớ trình duyệt, không tải lên GitHub hay máy chủ.</p>
+ if(!B)return `<div class="card"><h3>📘 Nạp file đề của bạn</h3><p class="small">Chọn file Word (.docx) đề Reading bạn đã tổng hợp (dạng “TEST 01 … 101. … (A) … Questions 131-134 refer to …”). App đọc file <b>ngay trên máy này</b>: câu hỏi và ảnh đoạn văn lưu trong bộ nhớ trình duyệt, không tải lên GitHub hay máy chủ.</p>
   <input type="file" id="etsFile" accept=".docx" style="margin-top:8px"><div id="etsMsg" class="small mute" style="margin-top:8px"></div>
   <p class="tiny mute" style="margin-top:10px">Mỗi máy (điện thoại / máy tính) cần nhập file một lần. Đáp án bạn nhập sẽ đồng bộ theo tài khoản 1 dòng.</p></div>`;
  const tq=B.tests.reduce((a,t)=>a+Object.keys(t.q).length,0),keyed=B.tests.filter(t=>etsHasKey(t.no)).length,lv=etsLevel(),L=ETS_LV[lv];
  const cnt=p=>etsUnits({parts:[p],lv}).reduce((a,u)=>a+u.qs.length,0);const wr=Object.keys(S.etsWrong||{}).length;const hist=(S.etsHist||[]).filter(h=>h.k==='mock').slice(-5);
- return `<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>📘 ${esc(B.name||'Đề ETS')}</b><div class="small mute">${B.tests.length} đề · ${tq} câu · đã có đáp án ${keyed}/${B.tests.length} đề</div></div>
+ return `<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>📘 ${esc(B.name||'Đề tự đăng')}</b><div class="small mute">${B.tests.length} đề · ${tq} câu · đã có đáp án ${keyed}/${B.tests.length} đề</div></div>
   <button class="btn sm" data-act="etsKeyOpen">🔑 Nhập đáp án</button><button class="btn ghost sm" data-act="etsReset">Nhập lại file</button></div>
   ${keyed<B.tests.length?`<div class="note" style="margin-top:10px">⚠️ File đề không kèm đáp án. Bấm <b>Nhập đáp án</b> và dán bảng đáp án (Answer Key) của sách – chỉ đề có đáp án mới được dùng để luyện và chấm điểm.</div>`:''}</div>
  <div class="card"><h3 style="margin:0 0 6px">🎚️ Trình độ</h3><div style="display:flex;flex-wrap:wrap;gap:6px">${[1,2,3,4].map(k=>`<button class="btn ${k===lv?'':'ghost'} sm" data-act="etsLv" data-v="${k}">${ETS_LV[k].name}</button>`).join('')}</div>
@@ -4119,7 +4119,7 @@ function vEtsTab(){const B=ETS.bank;if(!ETS.ready){etsLoad().then(()=>{if(V.view
   <button class="btn ghost" data-act="etsPrac" data-p="6" ${cnt(6)?'':'disabled'}>📄 Part 6 · 2 đoạn<br><span class="tiny mute">kho ${cnt(6)} câu</span></button>
   <button class="btn ghost" data-act="etsPrac" data-p="7" ${cnt(7)?'':'disabled'}>📖 Part 7 · ~10 câu<br><span class="tiny mute">kho ${cnt(7)} câu</span></button>
   <button class="btn ghost" data-act="etsWrongGo" ${wr?'':'disabled'}>🔁 Làm lại câu sai<br><span class="tiny mute">${wr} câu</span></button></div></div>
- <div class="card"><h3 style="margin:0 0 4px">🏁 Thi thử Reading kiểu ETS</h3><div class="small mute">100 câu · 75 phút · Part 5 (30) + Part 6 (4 đoạn) + Part 7 (29 câu đơn, 2 bộ đoạn kép, 3 bộ ba đoạn). Câu hỏi lấy <b>ngẫu nhiên</b> từ các đề đã có đáp án – mỗi lần thi một đề khác. Chấm và quy đổi điểm Reading /495.</div>
+ <div class="card"><h3 style="margin:0 0 4px">🏁 Thi thử Reading</h3><div class="small mute">100 câu · 75 phút · Part 5 (30) + Part 6 (4 đoạn) + Part 7 (29 câu đơn, 2 bộ đoạn kép, 3 bộ ba đoạn). Câu hỏi lấy <b>ngẫu nhiên</b> từ các đề đã có đáp án – mỗi lần thi một đề khác. Chấm và quy đổi điểm Reading /495.</div>
   <button class="btn" style="margin-top:10px" data-act="etsMockGo" ${keyed?'':'disabled'}>Bắt đầu thi thử</button>
   ${hist.length?`<div class="small" style="margin-top:10px">Lần gần đây: ${hist.map(h=>`<b>${h.s}</b> (${h.r}/${h.n}, ${h.d})`).join(' · ')}</div>`:''}</div>
  <div class="card"><h3 style="margin:0 0 8px">📚 Làm trọn từng đề (Part 5–7 · 75 phút)</h3><div style="display:flex;flex-wrap:wrap;gap:6px">${B.tests.map(t=>`<button class="btn ${etsHasKey(t.no)?'ghost':'ghost'} sm" data-act="etsFull" data-t="${t.no}" ${etsHasKey(t.no)?'':'disabled title="Chưa có đáp án"'}>Test ${String(t.no).padStart(2,'0')}</button>`).join('')}</div></div>`}
@@ -4137,8 +4137,8 @@ Object.assign(ACT,{etsPick:d=>{if(!EX||EX.show)return;EX.ans[d.k]=d.v;const y=sc
  etsNav:d=>{if(!EX)return;const n=EX.i+(+d.d);if(n>=EX.items.length){if(EX.show)return etsResult();return etsSubmit()}if(n<0)return;EX.i=n;etsRender();scrollTo(0,0)},
  etsQuit:()=>{clearInterval(etsRender.tk);const b=EX&&EX.back;EX=null;V=b&&b.view==='toeichub'?b:{view:'toeichub',tab:'ets'};render();scrollTo(0,0)},
  etsReview:()=>{EX.show=1;EX.i=0;etsRender();scrollTo(0,0)},
- etsPrac:d=>etsPractice(+d.p),etsMockGo:()=>etsStart(etsMock(),{title:'Thi thử Reading ETS',min:75,kind:'mock'}),
- etsFull:d=>{const t=+d.t;etsStart(etsUnits({parts:[5,6,7],tests:[t],lvFilter:false}),{title:'ETS 2026 · Test '+String(t).padStart(2,'0'),min:75,kind:'mock'})},
+ etsPrac:d=>etsPractice(+d.p),etsMockGo:()=>etsStart(etsMock(),{title:'Thi thử Reading',min:75,kind:'mock'}),
+ etsFull:d=>{const t=+d.t;etsStart(etsUnits({parts:[5,6,7],tests:[t],lvFilter:false}),{title:'Đề tự đăng · Test '+String(t).padStart(2,'0'),min:75,kind:'mock'})},
  etsWrongGo:()=>{const ks=Object.keys(S.etsWrong||{});const all=etsUnits({parts:[5,6,7],lvFilter:false});const sel=all.filter(u=>u.qs.some(n=>ks.includes(qk(u.t,n))));etsStart(pickN(sel,12),{title:'Làm lại câu sai'})},
  etsLv:d=>{S.etsLv=+d.v;save();render()},etsKeyOpen:()=>etsKeyOpen(),
  etsKeySave:()=>{const k=etsParseKey(($('#etsKeyIn')||{}).value||'');const n=Object.keys(k).length;if(!n){$('#etsKeyMsg').textContent='Không đọc được đáp án nào – kiểm tra lại định dạng.';return}S.etsKey=S.etsKey||{};for(const t in k)S.etsKey[t]=Object.assign(S.etsKey[t]||{},k[t]);save();closeSheet(true);toast('Đã lưu đáp án cho '+n+' đề: '+Object.entries(k).map(([t,v])=>'Test '+t+' ('+Object.keys(v).length+' câu)').join(', '),5000);render()},
@@ -4149,9 +4149,9 @@ document.addEventListener('change',async e=>{if(e.target.id!=='etsFile')return;c
 (function(){const _r=render;render=function(){if(V.view==='ets'&&EX){renderStats();return EX.result&&!EX.show?etsResult():etsRender()}return _r.apply(this,arguments)};
  const _o=openNode;openNode=function(gid,nid){_o(gid,nid);if(!/^toeic-/.test(gid)||!ETS.bank)return;const g=goalBy(gid),n=findNode(g,nid);if(!n)return;const st=states(g).st[nid];if(st==='lock'||st==='todo')return;
   const k={day:6,review:15,mid:30,final:40}[n.type];if(!k)return;const lv=+gid.slice(-1);const parts=lv<=1?[5]:n.type==='day'?[5,6]:[5,6,7];const u=etsUnits({parts,lv});if(!u.length)return;
-  const sh=$('#sheetHost .sheet');if(!sh)return;sh.insertAdjacentHTML('beforeend',`<div class="task" style="margin-top:10px"><div class="ti">📘</div><div class="tt"><h4 style="font-size:14.5px">Câu ETS 2026 (không bắt buộc)</h4><div class="tiny mute">${k} câu từ đề của bạn · Part ${parts.join(', ')} · hợp trình độ ${ETS_LV[lv].name.split(' (')[0]}</div></div><button class="btn sm" data-act="etsNode" data-g="${gid}" data-n="${nid}" data-k="${k}" data-l="${lv}" data-p="${parts.join(',')}">Làm</button></div>`)};
+  const sh=$('#sheetHost .sheet');if(!sh)return;sh.insertAdjacentHTML('beforeend',`<div class="task" style="margin-top:10px"><div class="ti">📘</div><div class="tt"><h4 style="font-size:14.5px">Câu từ đề tự đăng (không bắt buộc)</h4><div class="tiny mute">${k} câu từ đề của bạn · Part ${parts.join(', ')} · hợp trình độ ${ETS_LV[lv].name.split(' (')[0]}</div></div><button class="btn sm" data-act="etsNode" data-g="${gid}" data-n="${nid}" data-k="${k}" data-l="${lv}" data-p="${parts.join(',')}">Làm</button></div>`)};
  ACT.etsNode=d=>{const parts=d.p.split(',').map(Number),lv=+d.l,k=+d.k;const rnd=seeded([...(d.g+d.n)].reduce((a,c)=>a*31+c.charCodeAt(0)>>>0,7));const u=etsUnits({parts,lv});const sel=[];let c=0;
-  for(const x of pickN(u,u.length,rnd)){if(c>=k)break;if(c+x.qs.length>k+2&&x.p!==5)continue;sel.push(x);c+=x.qs.length}sel.sort((a,b)=>a.p-b.p||a.qs[0]-b.qs[0]);etsStart(sel,{title:'Câu ETS · '+findNode(goalBy(d.g),d.n).label})};
+  for(const x of pickN(u,u.length,rnd)){if(c>=k)break;if(c+x.qs.length>k+2&&x.p!==5)continue;sel.push(x);c+=x.qs.length}sel.sort((a,b)=>a.p-b.p||a.qs[0]-b.qs[0]);etsStart(sel,{title:'Đề tự đăng · '+findNode(goalBy(d.g),d.n).label})};
  setTimeout(etsLoad,500)})();
 
 {const l=document.getElementById("logoM");if(l)l.innerHTML=mochiSVG(42,"happy");}render(); setTimeout(initSync,0);
