@@ -4020,7 +4020,7 @@ const ETS={bank:null,banks:[],keys:{},img:{},ready:false,loading:false,online:nu
 const ETS_PUB=SB_URL+'/storage/v1/object/public/mochi-ets/';
 function etsMerge(banks){ETS.banks=banks||[];const tests=[];ETS.keys={};
  ETS.banks.forEach(b=>((b.data&&b.data.tests)||[]).forEach(t=>{const id=b.id.slice(0,8)+'-'+t.no;
-  tests.push({id,no:t.no,bank:b.id,bname:b.name,q:t.q,g:(t.g||[]).map(g=>({...g,imgs:(g.imgs||[]).map(n=>ETS_PUB+b.id+'/'+n)}))});
+  tests.push({id,no:t.no,bank:b.id,bname:b.name,sk:t.sk||'R',q:t.q,g:(t.g||[]).map(g=>({...g,imgs:(g.imgs||[]).map(n=>ETS_PUB+b.id+'/'+n),au:g.au?ETS_PUB+b.id+'/'+g.au:null}))});
   ETS.keys[id]=(b.keys&&b.keys[t.no])||{}}));
  ETS.bank=tests.length?{tests}:null}
 function etsRefresh(){if(V.view==='toeichub'&&V.tab==='ets'&&!EX)render()}
@@ -4081,7 +4081,7 @@ function etsHasKey(t){const k=ETS.keys[t];if(!k)return false;const T=ETS.bank&&E
 const ETS_LV={1:{name:'Cơ bản (GĐ1 · 0→350)',p5:[101,112],p6:false,p7:[147,152]},2:{name:'Sơ trung cấp (GĐ2 · 350→550)',p5:[101,120],p6:true,p7:[147,160]},3:{name:'Trung cấp (GĐ3 · 550→750)',p5:[101,130],p6:true,p7:[147,185]},4:{name:'Nâng cao (GĐ4 · 750→900+)',p5:[113,130],p6:true,p7:[147,200]}};
 function etsLevel(){const g=(S.prog&&Object.keys(S.prog).filter(k=>/^toeic-\d/.test(k)).sort().pop())||'';const v=S.etsLv||+((g.match(/toeic-(\d)/)||[])[1])||2;return Math.min(4,Math.max(1,v))}
 function etsUnits(o){/* o:{parts:[5,6,7], lv, tests:[], p7:[a,b], onlyKey} → [{t,from,to,g?}] */const B=ETS.bank;if(!B)return[];const lv=o.lv||etsLevel(),L=ETS_LV[lv],OK=ETS_LVOK[lv],lvf=o.lvFilter!==false;const out=[];
- for(const T of B.tests){if(o.tests&&!o.tests.includes(T.id))continue;if(o.onlyKey!==false&&!etsHasKey(T.id))continue;
+ for(const T of B.tests){if(T.sk==='L')continue;if(o.tests&&!o.tests.includes(T.id))continue;if(o.onlyKey!==false&&!etsHasKey(T.id))continue;
   if(o.parts.includes(5))for(let n=101;n<=130;n++){const q=T.q[n];if(!q)continue;if(lvf&&(q.lv?!OK.includes(q.lv):(n<L.p5[0]||n>L.p5[1])))continue;out.push({t:T.id,p:5,qs:[n]})}
   if(o.parts.includes(6))T.g.filter(g=>g.from>=131&&g.to<=146&&(!lvf||(g.lv?OK.includes(g.lv):L.p6))).forEach(g=>out.push({t:T.id,p:6,qs:range(g.from,g.to),g}));
   if(o.parts.includes(7)){const r=o.p7||(o.lvFilter===false?[147,200]:L.p7);T.g.filter(g=>g.from>=147&&(o.p7||!lvf||!g.lv?g.from>=r[0]&&g.to<=r[1]:OK.includes(g.lv))).forEach(g=>out.push({t:T.id,p:7,qs:range(g.from,g.to),g}))}}
@@ -4096,6 +4096,15 @@ function etsMock(){const all=etsUnits({parts:[5,6,7],lvFilter:false});const p5=a
  const sel5=[];for(let n=101;n<=130;n++){const c=p5.filter(u=>u.qs[0]===n);if(c.length)sel5.push(etsPickN(c,1)[0])}
  const s7=[];let cnt=0;for(const u of etsPickN(single,single.length)){if(cnt+u.qs.length>29)continue;s7.push(u);cnt+=u.qs.length;if(cnt>=29)break}s7.sort((a,b)=>a.qs.length-b.qs.length);
  return sel5.concat(etsPickN(p6,4),s7,etsPickN(dbl,2),etsPickN(tri,3))}
+/* ---- v31: Listening (Part 1–4) – mỗi nhóm câu có file audio riêng ---- */
+const L_PART={1:'Part 1 · Mô tả tranh',2:'Part 2 · Hỏi – đáp',3:'Part 3 · Hội thoại',4:'Part 4 · Bài nói'};
+const L_HINT={1:'Nghe 4 câu mô tả, chọn câu đúng nhất với bức ảnh.',2:'Nghe câu hỏi và 3 câu trả lời, chọn câu đáp phù hợp nhất.',3:'Nghe đoạn hội thoại rồi trả lời 3 câu hỏi.',4:'Nghe bài nói rồi trả lời 3 câu hỏi.'};
+function etsLTests(onlyKey){const B=ETS.bank;return B?B.tests.filter(T=>T.sk==='L'&&(onlyKey===false||etsHasKey(T.id))):[]}
+function etsLUnits(o){/* o:{parts:[1..4], tests:[]} */const out=[];for(const T of etsLTests(o.onlyKey)){if(o.tests&&!o.tests.includes(T.id))continue;
+ T.g.forEach(g=>{if(o.parts.includes(g.p))out.push({t:T.id,p:g.p,qs:range(g.from,g.to),g})})}return out}
+function etsLMock(){const u=etsLUnits({parts:[1,2,3,4]});const by=p=>u.filter(x=>x.p===p);
+ const pick=(p,n)=>{const a=by(p),sel=[];for(let i=0;i<n;i++){const c=a.filter(x=>x.g.from===(p===1?1:p===2?7:p===3?32:71)+i*(p<=2?1:3)&&!sel.includes(x));if(c.length)sel.push(etsPickN(c,1)[0])}return sel};
+ return pick(1,6).concat(pick(2,25),pick(3,13),pick(4,10))}
 /* ---- phòng làm bài ---- */
 let EX=null;
 function etsStart(units,o){if(!units.length)return toast(ETS.bank?'Chưa có câu phù hợp – hãy nhập đáp án cho đề trước':'Chưa nhập file đề');stopGame&&stopGame();closeSheet(true);theme('en');
@@ -4105,28 +4114,34 @@ function etsStart(units,o){if(!units.length)return toast(ETS.bank?'Chưa có câ
 const fmtMs=ms=>{ms=Math.max(0,ms);const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 const qk=(t,n)=>t+'_'+n;
 async function etsRender(){if(!EX)return;const u=EX.items[EX.i],T=ETS.bank.tests.find(t=>t.id===u.t);const tot=EX.items.reduce((a,x)=>a+x.qs.length,0),done=Object.keys(EX.ans).length;
- const pass=u.g?`<div class="card" style="padding:10px">${u.g.imgs.map(n=>`<img data-ets="${esc(n)}" alt="Đoạn văn" style="width:100%;border-radius:8px;background:#fff;margin-bottom:6px">`).join('')}${!u.g.imgs.length&&u.g.text?`<div style="white-space:pre-wrap;line-height:1.7">${esc(u.g.text)}</div>`:''}<div class="tiny mute">Questions ${u.g.from}-${u.g.to} · ${esc(u.g.kind)}</div></div>`:'';
+ const isL=u.p<=4;const oldAu=document.getElementById('etsAu');if(oldAu)oldAu.remove();
+ const pass=isL?`<div class="card" style="padding:12px"><div style="font-weight:800">🎧 ${L_PART[u.p]}</div><div class="tiny mute" style="margin:2px 0 8px">${L_HINT[u.p]}${EX.kind==='mock'?' Audio tự phát – thi thật chỉ được nghe 1 lần.':''}</div><div id="etsAuSlot"></div>${u.g.imgs.map(n=>`<img data-ets="${esc(n)}" alt="${u.p===1?'Ảnh':'Hình minh hoạ'}" style="width:100%;max-width:560px;display:block;margin:8px auto 0;border-radius:8px;background:#fff">`).join('')}</div>`:u.g?`<div class="card" style="padding:10px">${u.g.imgs.map(n=>`<img data-ets="${esc(n)}" alt="Đoạn văn" style="width:100%;border-radius:8px;background:#fff;margin-bottom:6px">`).join('')}${!u.g.imgs.length&&u.g.text?`<div style="white-space:pre-wrap;line-height:1.7">${esc(u.g.text)}</div>`:''}<div class="tiny mute">Questions ${u.g.from}-${u.g.to} · ${esc(u.g.kind)}</div></div>`:'';
  const qhtml=u.qs.map(n=>{const q=T.q[n];const a=EX.ans[qk(u.t,n)];const k=EX.show?etsKey(u.t,n):null;
-  return `<div class="card" style="padding:14px"><div style="font-weight:700;margin-bottom:8px">${n}. ${esc(q.stem||'').replace(/-{4,}/g,'<span style="display:inline-block;min-width:60px;border-bottom:2px solid var(--acc)">&nbsp;</span>')}</div>
-  <div style="display:grid;gap:8px">${[0,1,2,3].map(j=>{const L='ABCD'[j];const sel=a===L,ok=k===L;return `<button class="opt" data-act="etsPick" data-k="${qk(u.t,n)}" data-v="${L}" style="text-align:left;padding:10px 12px;min-height:44px;${sel?'border-color:var(--acc);background:var(--soft);':''}${k?ok?'border-color:var(--ok);background:#2ecc7122;':sel?'border-color:var(--bad);background:#e74c3c22;':'':''}"><b>(${L})</b> ${esc(q.o[j]||'')}</button>`}).join('')}</div>
+  return `<div class="card" style="padding:14px"><div style="font-weight:700;margin-bottom:8px">${n}. ${isL&&!q.stem?'<span class="mute" style="font-weight:600">'+(u.p===1?'Chọn câu mô tả đúng':'Chọn câu đáp đúng')+'</span>':''}${esc(q.stem||'').replace(/-{4,}/g,'<span style="display:inline-block;min-width:60px;border-bottom:2px solid var(--acc)">&nbsp;</span>')}</div>
+  <div style="display:${isL&&!q.stem?'grid;grid-template-columns:repeat('+q.o.length+',1fr)':'grid'};gap:8px">${q.o.map((_,j)=>j).map(j=>{const L='ABCD'[j];const sel=a===L,ok=k===L;return `<button class="opt" data-act="etsPick" data-k="${qk(u.t,n)}" data-v="${L}" style="text-align:left;padding:10px 12px;min-height:44px;${sel?'border-color:var(--acc);background:var(--soft);':''}${k?ok?'border-color:var(--ok);background:#2ecc7122;':sel?'border-color:var(--bad);background:#e74c3c22;':'':''}"><b>(${L})</b>${q.o[j]?' '+esc(q.o[j]):''}</button>`}).join('')}</div>
   ${EX.show&&!k?'<div class="tiny mute" style="margin-top:6px">Chưa có đáp án câu này</div>':''}${EX.show&&k?`<div class="note" style="margin-top:10px;line-height:1.6"><b>${a===k?'✅ Đúng':a?'❌ Sai – bạn chọn ('+a+')':'⚪ Chưa trả lời'}</b> · Đáp án đúng: <b>(${k})</b>${q.ex?`<div style="margin-top:6px;white-space:pre-wrap">💡 ${esc(q.ex)}</div>`:''}</div>`:''}</div>`}).join('');
- app().innerHTML=`<div class="gtop"><button class="x" data-act="etsQuit">✕</button><div style="flex:1"><div class="tiny mute" style="font-weight:800">${esc(EX.title)} · ${esc(T.bname||'')} · TEST ${String(T.no).padStart(2,'0')} · PART ${u.p}</div><div class="small">Đã làm ${done}/${tot} câu</div></div>${EX.min?`<b id="etsT" style="font-size:20px;font-variant-numeric:tabular-nums">${fmtMs(EX.end-Date.now())}</b>`:''}</div>
+ app().innerHTML=`<div class="gtop"><button class="x" data-act="etsQuit">✕</button><div style="flex:1"><div class="tiny mute" style="font-weight:800">${esc(EX.title)} · ${esc(T.bname||'')} · ${isL?'LISTENING · ':''}TEST ${String(T.no).padStart(2,'0')} · PART ${u.p}</div><div class="small">Đã làm ${done}/${tot} câu</div></div>${EX.min?`<b id="etsT" style="font-size:20px;font-variant-numeric:tabular-nums">${fmtMs(EX.end-Date.now())}</b>`:''}</div>
  ${pass}${qhtml}
  <div class="row" style="justify-content:space-between;margin-top:10px"><button class="btn ghost sm" data-act="etsNav" data-d="-1" ${EX.i?'':'disabled'}>← Trước</button><span class="small mute">${EX.i+1}/${EX.items.length}</span><button class="btn sm" data-act="etsNav" data-d="1">${EX.i<EX.items.length-1?'Tiếp →':EX.show?'Xem kết quả':'Nộp bài ✓'}</button></div>`;
- document.querySelectorAll('img[data-ets]').forEach(async im=>{im.src=await etsImg(im.dataset.ets)})}
+ document.querySelectorAll('img[data-ets]').forEach(async im=>{im.src=await etsImg(im.dataset.ets)});
+ const slot=document.getElementById('etsAuSlot');if(slot&&u.g&&u.g.au){let a=oldAu&&oldAu.dataset.src===u.g.au?oldAu:null;
+  if(!a){a=document.createElement('audio');a.id='etsAu';a.controls=true;a.preload='auto';a.dataset.src=u.g.au;a.src=u.g.au;a.style.width='100%';
+   if(EX.played!==EX.i+'|'+u.g.au&&!EX.show){EX.played=EX.i+'|'+u.g.au;a.play().catch(()=>{})}}
+  slot.replaceWith(a)}
+ if(oldAu&&!oldAu.isConnected)oldAu.pause()}
 function etsSubmit(force){if(!EX)return;const tot=EX.items.reduce((a,x)=>a+x.qs.length,0);const left=tot-Object.keys(EX.ans).length;
  if(!force&&left&&!EX.warn){EX.warn=1;return toast(`Còn ${left} câu chưa làm – bấm Nộp lần nữa để nộp`)}clearInterval(etsRender.tk);
- let right=0,keyed=0;const byP={5:[0,0],6:[0,0],7:[0,0]};const wrong=[];
+ let right=0,keyed=0;const byP={};EX.items.forEach(u=>byP[u.p]=byP[u.p]||[0,0]);const wrong=[];const isL=EX.items.every(u=>u.p<=4);
  EX.items.forEach(u=>u.qs.forEach(n=>{const k=etsKey(u.t,n);if(!k)return;keyed++;byP[u.p][1]++;if(EX.ans[qk(u.t,n)]===k){right++;byP[u.p][0]++}else wrong.push([u.t,n])}));
- const score=EX.kind==='mock'&&typeof lcConv==='function'?lcConv('RC',Math.round(right/Math.max(1,keyed)*100)):null;
- S.etsHist=S.etsHist||[];S.etsHist.push({d:today(),k:EX.kind,r:right,n:keyed,s:score});S.etsWrong=S.etsWrong||{};wrong.forEach(([t,n])=>S.etsWrong[qk(t,n)]=(S.etsWrong[qk(t,n)]||0)+1);
+ const score=EX.kind==='mock'&&typeof lcConv==='function'?lcConv(isL?'LC':'RC',Math.round(right/Math.max(1,keyed)*100)):null;
+ S.etsHist=S.etsHist||[];S.etsHist.push({d:today(),k:EX.kind,sk:isL?'L':'R',r:right,n:keyed,s:score});S.etsWrong=S.etsWrong||{};wrong.forEach(([t,n])=>S.etsWrong[qk(t,n)]=(S.etsWrong[qk(t,n)]||0)+1);
  EX.items.forEach(u=>u.qs.forEach(n=>{if(EX.ans[qk(u.t,n)]===etsKey(u.t,n)&&S.etsWrong[qk(u.t,n)])delete S.etsWrong[qk(u.t,n)]}));
  if(keyed&&right/keyed>=.6&&typeof markStudied==='function')markStudied();addXP(Math.round(right*1.5));if(right/Math.max(1,keyed)>=.8)confetti();save();
- EX.result={right,keyed,byP,score};etsResult()}
+ EX.result={right,keyed,byP,score,isL};const au=document.getElementById('etsAu');if(au)au.pause();etsResult()}
 function etsResult(){const r=EX.result;app().innerHTML=`<div class="gtop"><button class="x" data-act="etsQuit">✕</button><div style="flex:1;font-weight:800">Kết quả · ${esc(EX.title)}</div></div>
- <div class="card" style="text-align:center;padding:24px">${r.score!=null?`<div class="tiny mute">ĐIỂM READING QUY ĐỔI</div><div style="font-size:52px;font-weight:900">${r.score}<span class="mute" style="font-size:20px">/495</span></div>`:''}
+ <div class="card" style="text-align:center;padding:24px">${r.score!=null?`<div class="tiny mute">ĐIỂM ${r.isL?'LISTENING':'READING'} QUY ĐỔI</div><div style="font-size:52px;font-weight:900">${r.score}<span class="mute" style="font-size:20px">/495</span></div>`:''}
  <div style="font-size:${r.score!=null?22:48}px;font-weight:900">${r.right}/${r.keyed} câu đúng</div><div class="small mute">${r.keyed?Math.round(r.right/r.keyed*100)+'%':'Chưa có đáp án để chấm'}</div>
- <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px">${[5,6,7].map(p=>`<div class="card" style="padding:10px"><div class="tiny mute">Part ${p}</div><b>${r.byP[p][0]}/${r.byP[p][1]}</b></div>`).join('')}</div></div>
+ <div class="grid" style="grid-template-columns:repeat(${Object.keys(r.byP).length},1fr);gap:8px;margin-top:14px">${Object.keys(r.byP).map(p=>`<div class="card" style="padding:10px"><div class="tiny mute">Part ${p}</div><b>${r.byP[p][0]}/${r.byP[p][1]}</b></div>`).join('')}</div></div>
  <div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap"><button class="btn" data-act="etsReview">🔍 Xem đáp án &amp; giải thích</button><button class="btn ghost" data-act="etsQuit">Xong</button></div>`;window.scrollTo(0,0)}
 /* ---- giao diện tab trong khu TOEIC ---- */
 function etsUpCard(){if(!ACC.key)return `<div class="card"><h3 style="margin:0 0 6px">⬆️ Đăng đề lên kho chung</h3><p class="small">Đăng nhập (tài khoản 1 dòng) để đăng đề – đề bạn đăng sẽ hiện cho <b>mọi người trong nhóm</b>, và chỉ bạn xoá được.</p><button class="btn sm" data-act="acctOpen">👤 Đăng nhập</button></div>`;
@@ -4143,21 +4158,29 @@ function vEtsTab(){if(!ETS.ready){etsLoad();return '<p class="mute">Đang tải 
   <button class="btn ghost sm" data-act="etsKeyOpen" data-b="${b.id}">🔑 Đáp án</button>${b.mine?`<button class="btn ghost sm" data-act="etsDel" data-b="${b.id}">🗑️ Xoá</button>`:''}</div>`}).join('')}</div>`
   :`<div class="card"><h3 style="margin:0 0 6px">📘 Kho đề chung của nhóm</h3><p class="small mute">${ETS.online===false?'Chưa tải được kho chung.':'Chưa có ai đăng đề. Hãy là người đầu tiên!'}</p></div>`;
  if(!B)return off+legacy+list+etsUpCard();
- const tq=B.tests.reduce((a,t)=>a+Object.keys(t.q).length,0),keyed=B.tests.filter(t=>etsHasKey(t.id)).length,lv=etsLevel(),L=ETS_LV[lv];
- const cnt=p=>etsUnits({parts:[p],lv}).reduce((a,u)=>a+u.qs.length,0);const wr=Object.keys(S.etsWrong||{}).length;const hist=(S.etsHist||[]).filter(h=>h.k==='mock').slice(-5);
+ const RT=B.tests.filter(t=>t.sk!=='L');const tq=RT.reduce((a,t)=>a+Object.keys(t.q).length,0),keyed=B.tests.filter(t=>etsHasKey(t.id)).length,rkeyed=RT.filter(t=>etsHasKey(t.id)).length,lv=etsLevel(),L=ETS_LV[lv];
+ const cnt=p=>etsUnits({parts:[p],lv}).reduce((a,u)=>a+u.qs.length,0);const wr=Object.keys(S.etsWrong||{}).length;const hist=(S.etsHist||[]).filter(h=>h.k==='mock').slice(-10);const LT=etsLTests(false),lk=LT.filter(t=>etsHasKey(t.id)).length,lcnt=p=>etsLUnits({parts:[p]}).reduce((a,u)=>a+u.qs.length,0),lh=hist.filter(h=>h.sk==='L').slice(-5);
  return `${off}${legacy}${list}
  ${keyed<B.tests.length?`<div class="note">⚠️ Một số đề chưa có đáp án. Bấm <b>🔑 Đáp án</b> ở bộ đề tương ứng và dán bảng đáp án – chỉ đề có đáp án mới dùng để luyện và chấm điểm. Đáp án nhập vào sẽ dùng chung cho cả nhóm.</div>`:''}
  <div class="card"><h3 style="margin:0 0 6px">🎚️ Trình độ</h3><div style="display:flex;flex-wrap:wrap;gap:6px">${[1,2,3,4].map(k=>`<button class="btn ${k===lv?'':'ghost'} sm" data-act="etsLv" data-v="${k}">${ETS_LV[k].name}</button>`).join('')}</div>
   <div class="tiny mute" style="margin-top:6px">Câu hỏi được chọn theo mức độ gắn sẵn trong đề: ${ETS_LVOK[lv].map(x=>'GĐ'+x).join(' + ')}${lv===1?' (chưa có Part 6)':''}. Đề chưa gắn mức thì lọc theo số câu (Part 5: ${L.p5[0]}–${L.p5[1]}, Part 7: ${L.p7[0]}–${L.p7[1]}). Mặc định theo giai đoạn TOEIC bạn đang học.</div></div>
- <div class="card"><h3 style="margin:0 0 8px">🎯 Luyện theo Part (trình độ đang chọn)</h3><div class="tiny mute" style="margin-bottom:8px">Câu lấy từ tất cả ${B.tests.length} đề (${tq} câu) trong kho chung.</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
+ <div class="card"><h3 style="margin:0 0 8px">🎯 Luyện theo Part (trình độ đang chọn)</h3><div class="tiny mute" style="margin-bottom:8px">Câu lấy từ tất cả ${RT.length} đề Reading (${tq} câu) trong kho chung.</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
   <button class="btn ghost" data-act="etsPrac" data-p="5" ${cnt(5)?'':'disabled'}>✏️ Part 5 · 10 câu<br><span class="tiny mute">kho ${cnt(5)} câu</span></button>
   <button class="btn ghost" data-act="etsPrac" data-p="6" ${cnt(6)?'':'disabled'}>📄 Part 6 · 2 đoạn<br><span class="tiny mute">kho ${cnt(6)} câu</span></button>
   <button class="btn ghost" data-act="etsPrac" data-p="7" ${cnt(7)?'':'disabled'}>📖 Part 7 · ~10 câu<br><span class="tiny mute">kho ${cnt(7)} câu</span></button>
   <button class="btn ghost" data-act="etsWrongGo" ${wr?'':'disabled'}>🔁 Làm lại câu sai<br><span class="tiny mute">${wr} câu</span></button></div></div>
  <div class="card"><h3 style="margin:0 0 4px">🏁 Thi thử Reading</h3><div class="small mute">100 câu · 75 phút · Part 5 (30) + Part 6 (4 đoạn) + Part 7 (29 câu đơn, 2 bộ đoạn kép, 3 bộ ba đoạn). Câu hỏi lấy <b>ngẫu nhiên</b> từ các đề đã có đáp án trong kho chung – mỗi lần thi một đề khác. Chấm và quy đổi điểm Reading /495.</div>
-  <button class="btn" style="margin-top:10px" data-act="etsMockGo" ${keyed?'':'disabled'}>Bắt đầu thi thử</button>
-  ${hist.length?`<div class="small" style="margin-top:10px">Lần gần đây: ${hist.map(h=>`<b>${h.s}</b> (${h.r}/${h.n}, ${h.d})`).join(' · ')}</div>`:''}</div>
- <div class="card"><h3 style="margin:0 0 8px">📚 Làm trọn từng đề (Part 5–7 · 75 phút)</h3>${ETS.banks.map(b=>{const ts=B.tests.filter(t=>t.bank===b.id);if(!ts.length)return '';return `<div class="tiny mute" style="font-weight:800;margin:8px 0 4px">${esc(b.name)}</div><div style="display:flex;flex-wrap:wrap;gap:6px">${ts.map(t=>`<button class="btn ghost sm" data-act="etsFull" data-t="${t.id}" ${etsHasKey(t.id)?'':'disabled title="Chưa có đáp án"'}>Test ${String(t.no).padStart(2,'0')}</button>`).join('')}</div>`}).join('')}</div>
+  <button class="btn" style="margin-top:10px" data-act="etsMockGo" ${rkeyed?'':'disabled'}>Bắt đầu thi thử</button>
+  ${hist.filter(h=>h.sk!=='L').length?`<div class="small" style="margin-top:10px">Lần gần đây: ${hist.filter(h=>h.sk!=='L').map(h=>`<b>${h.s}</b> (${h.r}/${h.n}, ${h.d})`).join(' · ')}</div>`:''}</div>
+ ${LT.length?`<div class="card"><h3 style="margin:0 0 4px">🎧 Listening (Part 1–4)</h3><div class="tiny mute" style="margin-bottom:8px">${LT.length} đề · có audio từng câu · nên đeo tai nghe. Câu lấy ngẫu nhiên từ các đề đã có đáp án.</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
+  <button class="btn ghost" data-act="etsLPrac" data-p="1" ${lcnt(1)?'':'disabled'}>📷 Part 1 · 6 câu<br><span class="tiny mute">kho ${lcnt(1)} câu</span></button>
+  <button class="btn ghost" data-act="etsLPrac" data-p="2" ${lcnt(2)?'':'disabled'}>💬 Part 2 · 10 câu<br><span class="tiny mute">kho ${lcnt(2)} câu</span></button>
+  <button class="btn ghost" data-act="etsLPrac" data-p="3" ${lcnt(3)?'':'disabled'}>👥 Part 3 · 3 hội thoại<br><span class="tiny mute">kho ${lcnt(3)} câu</span></button>
+  <button class="btn ghost" data-act="etsLPrac" data-p="4" ${lcnt(4)?'':'disabled'}>🎙️ Part 4 · 3 bài nói<br><span class="tiny mute">kho ${lcnt(4)} câu</span></button></div>
+  <div style="margin-top:12px"><b>🏁 Thi thử Listening</b><div class="small mute">100 câu · 45 phút · Part 1 (6) + Part 2 (25) + Part 3 (13 đoạn) + Part 4 (10 bài), ghép ngẫu nhiên từ các đề. Quy đổi điểm Listening /495.</div>
+  <button class="btn" style="margin-top:8px" data-act="etsLMockGo" ${lk?'':'disabled'}>Bắt đầu thi thử Listening</button>${lh.length?`<div class="small" style="margin-top:8px">Lần gần đây: ${lh.map(h=>`<b>${h.s}</b> (${h.r}/${h.n}, ${h.d})`).join(' · ')}</div>`:''}</div>
+  <div style="margin-top:12px"><b>📚 Làm trọn từng đề Listening (45 phút)</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">${LT.map(t=>`<button class="btn ghost sm" data-act="etsLFull" data-t="${t.id}" ${etsHasKey(t.id)?'':'disabled title="Chưa có đáp án"'}>Test ${String(t.no).padStart(2,'0')}</button>`).join('')}</div></div></div>`:''}
+ <div class="card"><h3 style="margin:0 0 8px">📚 Làm trọn từng đề Reading (Part 5–7 · 75 phút)</h3>${ETS.banks.map(b=>{const ts=B.tests.filter(t=>t.bank===b.id&&t.sk!=='L');if(!ts.length)return '';return `<div class="tiny mute" style="font-weight:800;margin:8px 0 4px">${esc(b.name)}</div><div style="display:flex;flex-wrap:wrap;gap:6px">${ts.map(t=>`<button class="btn ghost sm" data-act="etsFull" data-t="${t.id}" ${etsHasKey(t.id)?'':'disabled title="Chưa có đáp án"'}>Test ${String(t.no).padStart(2,'0')}</button>`).join('')}</div>`}).join('')}</div>
  ${etsUpCard()}`}
 function etsKeyOpen(bid){const b=ETS.banks.find(x=>x.id===bid);if(!b)return;
  $('#sheetHost').innerHTML=`<div class="scrim" data-act="scrim"><div class="sheet" role="dialog"><div class="grab"></div><div class="sh-top"><div style="flex:1"><h2>🔑 Nhập đáp án</h2><div class="small mute">Bộ đề: <b>${esc(b.name)}</b> · đáp án dùng chung cho cả nhóm</div></div><button class="x" style="font-size:26px;color:var(--mute)" data-act="closeSheet">✕</button></div>
@@ -4172,11 +4195,14 @@ function etsPractice(p){const lv=etsLevel();const u=etsUnits({parts:[p],lv});let
  etsStart(sel,{title:'Luyện Part '+p+' · '+ETS_LV[lv].name.split(' (')[0]})}
 Object.assign(ACT,{etsPick:d=>{if(!EX||EX.show)return;EX.ans[d.k]=d.v;const y=scrollY;etsRender().then(()=>scrollTo(0,y))},
  etsNav:d=>{if(!EX)return;const n=EX.i+(+d.d);if(n>=EX.items.length){if(EX.show)return etsResult();return etsSubmit()}if(n<0)return;EX.i=n;etsRender();scrollTo(0,0)},
- etsQuit:()=>{clearInterval(etsRender.tk);const b=EX&&EX.back;EX=null;V=b&&b.view==='toeichub'?b:{view:'toeichub',tab:'ets'};render();scrollTo(0,0)},
+ etsQuit:()=>{clearInterval(etsRender.tk);const au=document.getElementById('etsAu');if(au)au.pause();const b=EX&&EX.back;EX=null;V=b&&b.view==='toeichub'?b:{view:'toeichub',tab:'ets'};render();scrollTo(0,0)},
  etsReview:()=>{EX.show=1;EX.i=0;etsRender();scrollTo(0,0)},
  etsPrac:d=>etsPractice(+d.p),etsMockGo:()=>etsStart(etsMock(),{title:'Thi thử Reading',min:75,kind:'mock'}),
  etsFull:d=>{const T=ETS.bank&&ETS.bank.tests.find(x=>x.id===d.t);if(!T)return;etsStart(etsUnits({parts:[5,6,7],tests:[T.id],lvFilter:false}),{title:T.bname+' · Test '+String(T.no).padStart(2,'0'),min:75,kind:'mock'})},
- etsWrongGo:()=>{const ks=Object.keys(S.etsWrong||{});const all=etsUnits({parts:[5,6,7],lvFilter:false});const sel=all.filter(u=>u.qs.some(n=>ks.includes(qk(u.t,n))));etsStart(etsPickN(sel,12),{title:'Làm lại câu sai'})},
+ etsLPrac:d=>{const p=+d.p;const u=etsLUnits({parts:[p]});const sel=etsPickN(u,{1:6,2:10,3:3,4:3}[p]).sort((a,b)=>a.qs[0]-b.qs[0]);etsStart(sel,{title:'Luyện Listening '+L_PART[p]})},
+ etsLMockGo:()=>etsStart(etsLMock(),{title:'Thi thử Listening',min:45,kind:'mock'}),
+ etsLFull:d=>{const T=ETS.bank&&ETS.bank.tests.find(x=>x.id===d.t);if(!T)return;etsStart(etsLUnits({parts:[1,2,3,4],tests:[T.id]}),{title:T.bname+' · Test '+String(T.no).padStart(2,'0'),min:45,kind:'mock'})},
+ etsWrongGo:()=>{const ks=Object.keys(S.etsWrong||{});const all=etsUnits({parts:[5,6,7],lvFilter:false}).concat(etsLUnits({parts:[1,2,3,4]}));const sel=all.filter(u=>u.qs.some(n=>ks.includes(qk(u.t,n))));etsStart(etsPickN(sel,12),{title:'Làm lại câu sai'})},
  etsLv:d=>{S.etsLv=+d.v;save();render()},etsKeyOpen:d=>etsKeyOpen(d.b),
  etsKeySave:async d=>{const m=$('#etsKeyMsg');const k=etsParseKey(($('#etsKeyIn')||{}).value||'');const n=Object.keys(k).length;if(!n){m.textContent='Không đọc được đáp án nào – kiểm tra lại định dạng.';return}
   m.textContent='Đang lưu…';try{await sbRpc('mochi_bank_key',{p_id:d.b,p_keys:k})}catch(e){m.textContent='Không lưu được – kiểm tra mạng rồi thử lại.';return}
