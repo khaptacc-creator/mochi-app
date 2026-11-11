@@ -4101,7 +4101,7 @@ const L_PART={1:'Part 1 · Mô tả tranh',2:'Part 2 · Hỏi – đáp',3:'Part
 const L_HINT={1:'Nghe 4 câu mô tả, chọn câu đúng nhất với bức ảnh.',2:'Nghe câu hỏi và 3 câu trả lời, chọn câu đáp phù hợp nhất.',3:'Nghe đoạn hội thoại rồi trả lời 3 câu hỏi.',4:'Nghe bài nói rồi trả lời 3 câu hỏi.'};
 function etsLTests(onlyKey){const B=ETS.bank;return B?B.tests.filter(T=>T.sk==='L'&&(onlyKey===false||etsHasKey(T.id))):[]}
 function etsLUnits(o){/* o:{parts:[1..4], tests:[]} */const out=[];for(const T of etsLTests(o.onlyKey)){if(o.tests&&!o.tests.includes(T.id))continue;
- T.g.forEach(g=>{if(o.parts.includes(g.p))out.push({t:T.id,p:g.p,qs:range(g.from,g.to),g})})}return out}
+ T.g.forEach(g=>{if(o.parts.includes(g.p)&&(!o.lv||!g.lv||ETS_LVOK[o.lv].includes(g.lv)))out.push({t:T.id,p:g.p,qs:range(g.from,g.to),g})})}return out}
 function etsLMock(){const u=etsLUnits({parts:[1,2,3,4]});const by=p=>u.filter(x=>x.p===p);
  const pick=(p,n)=>{const a=by(p),sel=[];for(let i=0;i<n;i++){const c=a.filter(x=>x.g.from===(p===1?1:p===2?7:p===3?32:71)+i*(p<=2?1:3)&&!sel.includes(x));if(c.length)sel.push(etsPickN(c,1)[0])}return sel};
  return pick(1,6).concat(pick(2,25),pick(3,13),pick(4,10))}
@@ -4109,20 +4109,20 @@ function etsLMock(){const u=etsLUnits({parts:[1,2,3,4]});const by=p=>u.filter(x=
 let EX=null;
 function etsStart(units,o){if(!units.length)return toast(ETS.bank?'Chưa có câu phù hợp – hãy nhập đáp án cho đề trước':'Chưa nhập file đề');stopGame&&stopGame();closeSheet(true);theme('en');
  const items=units.map(u=>({...u,qs:u.qs.filter(n=>{const T=ETS.bank.tests.find(t=>t.id===u.t);return T&&T.q[n]})})).filter(u=>u.qs.length);
- EX={items,i:0,ans:{},title:o.title,min:o.min||0,start:Date.now(),kind:o.kind||'prac',back:V};if(EX.min)EX.end=Date.now()+EX.min*60000;
+ EX={items,i:0,ans:{},title:o.title,min:o.min||0,start:Date.now(),kind:o.kind||'prac',inst:(o.kind||'prac')!=='mock',back:V};if(EX.min)EX.end=Date.now()+EX.min*60000;
  V={view:'ets'};window.scrollTo(0,0);etsRender();clearInterval(etsRender.tk);if(EX.min)etsRender.tk=setInterval(()=>{const e=$('#etsT');if(!EX||!e)return clearInterval(etsRender.tk);const l=EX.end-Date.now();e.textContent=fmtMs(l);if(l<=0){clearInterval(etsRender.tk);toast('Hết giờ – tự nộp bài');etsSubmit(true)}},500)}
 const fmtMs=ms=>{ms=Math.max(0,ms);const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 const qk=(t,n)=>t+'_'+n;
 async function etsRender(){if(!EX)return;const u=EX.items[EX.i],T=ETS.bank.tests.find(t=>t.id===u.t);const tot=EX.items.reduce((a,x)=>a+x.qs.length,0),done=Object.keys(EX.ans).length;
  const isL=u.p<=4;const oldAu=document.getElementById('etsAu');if(oldAu)oldAu.remove();
  const pass=isL?`<div class="card" style="padding:12px"><div style="font-weight:800">🎧 ${L_PART[u.p]}</div><div class="tiny mute" style="margin:2px 0 8px">${L_HINT[u.p]}${EX.kind==='mock'?' Audio tự phát – thi thật chỉ được nghe 1 lần.':''}</div><div id="etsAuSlot"></div>${u.g.imgs.map(n=>`<img data-ets="${esc(n)}" alt="${u.p===1?'Ảnh':'Hình minh hoạ'}" style="width:100%;max-width:560px;display:block;margin:8px auto 0;border-radius:8px;background:#fff">`).join('')}</div>`:u.g?`<div class="card" style="padding:10px">${u.g.imgs.map(n=>`<img data-ets="${esc(n)}" alt="Đoạn văn" style="width:100%;border-radius:8px;background:#fff;margin-bottom:6px">`).join('')}${!u.g.imgs.length&&u.g.text?`<div style="white-space:pre-wrap;line-height:1.7">${esc(u.g.text)}</div>`:''}<div class="tiny mute">Questions ${u.g.from}-${u.g.to} · ${esc(u.g.kind)}</div></div>`:'';
- const qhtml=u.qs.map(n=>{const q=T.q[n];const a=EX.ans[qk(u.t,n)];const k=EX.show?etsKey(u.t,n):null;
-  return `<div class="card" style="padding:14px"><div style="font-weight:700;margin-bottom:8px">${n}. ${isL&&!q.stem?'<span class="mute" style="font-weight:600">'+(u.p===1?'Chọn câu mô tả đúng':'Chọn câu đáp đúng')+'</span>':''}${esc(q.stem||'').replace(/-{4,}/g,'<span style="display:inline-block;min-width:60px;border-bottom:2px solid var(--acc)">&nbsp;</span>')}</div>
-  <div style="display:${isL&&!q.stem?'grid;grid-template-columns:repeat('+q.o.length+',1fr)':'grid'};gap:8px">${q.o.map((_,j)=>j).map(j=>{const L='ABCD'[j];const sel=a===L,ok=k===L;return `<button class="opt" data-act="etsPick" data-k="${qk(u.t,n)}" data-v="${L}" style="text-align:left;padding:10px 12px;min-height:44px;${sel?'border-color:var(--acc);background:var(--soft);':''}${k?ok?'border-color:var(--ok);background:#2ecc7122;':sel?'border-color:var(--bad);background:#e74c3c22;':'':''}"><b>(${L})</b>${q.o[j]?' '+esc(q.o[j]):''}</button>`}).join('')}</div>
-  ${EX.show&&!k?'<div class="tiny mute" style="margin-top:6px">Chưa có đáp án câu này</div>':''}${EX.show&&k?`<div class="note" style="margin-top:10px;line-height:1.6"><b>${a===k?'✅ Đúng':a?'❌ Sai – bạn chọn ('+a+')':'⚪ Chưa trả lời'}</b> · Đáp án đúng: <b>(${k})</b>${q.ex?`<div style="margin-top:6px;white-space:pre-wrap">💡 ${esc(q.ex)}</div>`:''}</div>`:''}</div>`}).join('');
+ const qhtml=u.qs.map(n=>{const q=T.q[n];const a=EX.ans[qk(u.t,n)];const rev=!!(EX.show||(EX.inst&&a));const k=rev?etsKey(u.t,n):null;
+  return `<div class="card" style="padding:14px"><div style="font-weight:700;margin-bottom:8px">${n}. ${isL&&!q.stem?(rev&&q.tq?esc(q.tq):'<span class="mute" style="font-weight:600">'+(u.p===1?'Chọn câu mô tả đúng':'Chọn câu đáp đúng')+'</span>'):''}${esc(q.stem||'').replace(/-{4,}/g,'<span style="display:inline-block;min-width:60px;border-bottom:2px solid var(--acc)">&nbsp;</span>')}</div>
+  <div style="display:${isL&&!q.stem&&!(rev&&q.oT)?'grid;grid-template-columns:repeat('+q.o.length+',1fr)':'grid'};gap:8px">${q.o.map((_,j)=>j).map(j=>{const L='ABCD'[j];const sel=a===L,ok=k===L;return `<button class="opt" data-act="etsPick" data-k="${qk(u.t,n)}" data-v="${L}" style="text-align:left;padding:10px 12px;min-height:44px;${sel?'border-color:var(--acc);background:var(--soft);':''}${k?ok?'border-color:var(--ok);background:#2ecc7122;':sel?'border-color:var(--bad);background:#e74c3c22;':'':''}"><b>(${L})</b>${q.o[j]?' '+esc(q.o[j]):rev&&q.oT&&q.oT[j]?' '+esc(q.oT[j]):''}</button>`}).join('')}</div>
+  ${rev&&!k?'<div class="tiny mute" style="margin-top:6px">Chưa có đáp án câu này</div>':''}${rev&&k?`<div class="note" style="margin-top:10px;line-height:1.6"><b>${a===k?'✅ Đúng':a?'❌ Sai – bạn chọn ('+a+')':'⚪ Chưa trả lời'}</b> · Đáp án đúng: <b>(${k})</b>${etsExHtml(q)}</div>`:''}</div>`}).join('')+(isL&&u.g&&u.g.tr&&u.qs.every(n=>EX.show||(EX.inst&&EX.ans[qk(u.t,n)]))?`<div class="card" style="padding:14px"><b>📜 Transcript (lời thoại)</b><div style="margin-top:6px;line-height:1.7;white-space:pre-wrap">${esc(u.g.tr).replace(/^(W|M|W1|W2|M1|M2)\t/gm,'<b>$1:</b> ')}</div></div>`:'');
  app().innerHTML=`<div class="gtop"><button class="x" data-act="etsQuit">✕</button><div style="flex:1"><div class="tiny mute" style="font-weight:800">${esc(EX.title)} · ${esc(T.bname||'')} · ${isL?'LISTENING · ':''}TEST ${String(T.no).padStart(2,'0')} · PART ${u.p}</div><div class="small">Đã làm ${done}/${tot} câu</div></div>${EX.min?`<b id="etsT" style="font-size:20px;font-variant-numeric:tabular-nums">${fmtMs(EX.end-Date.now())}</b>`:''}</div>
  ${pass}${qhtml}
- <div class="row" style="justify-content:space-between;margin-top:10px"><button class="btn ghost sm" data-act="etsNav" data-d="-1" ${EX.i?'':'disabled'}>← Trước</button><span class="small mute">${EX.i+1}/${EX.items.length}</span><button class="btn sm" data-act="etsNav" data-d="1">${EX.i<EX.items.length-1?'Tiếp →':EX.show?'Xem kết quả':'Nộp bài ✓'}</button></div>`;
+ <div class="row" style="justify-content:space-between;margin-top:10px"><button class="btn ghost sm" data-act="etsNav" data-d="-1" ${EX.i?'':'disabled'}>← Trước</button><span class="small mute">${EX.i+1}/${EX.items.length}</span><button class="btn sm" data-act="etsNav" data-d="1">${EX.i<EX.items.length-1?'Tiếp →':EX.show?'Xem kết quả':'Nộp bài ✓'}</button></div>${EX.inst&&!EX.show?'<div class="tiny mute" style="text-align:center;margin-top:6px">Chế độ luyện: chọn xong là thấy đáp án và lời giải ngay.</div>':''}`;
  document.querySelectorAll('img[data-ets]').forEach(async im=>{im.src=await etsImg(im.dataset.ets)});
  const slot=document.getElementById('etsAuSlot');if(slot&&u.g&&u.g.au){let a=oldAu&&oldAu.dataset.src===u.g.au?oldAu:null;
   if(!a){a=document.createElement('audio');a.id='etsAu';a.controls=true;a.preload='auto';a.dataset.src=u.g.au;a.src=u.g.au;a.style.width='100%';
@@ -4159,7 +4159,7 @@ function vEtsTab(){if(!ETS.ready){etsLoad();return '<p class="mute">Đang tải 
   :`<div class="card"><h3 style="margin:0 0 6px">📘 Kho đề chung của nhóm</h3><p class="small mute">${ETS.online===false?'Chưa tải được kho chung.':'Chưa có ai đăng đề. Hãy là người đầu tiên!'}</p></div>`;
  if(!B)return off+legacy+list+etsUpCard();
  const RT=B.tests.filter(t=>t.sk!=='L');const tq=RT.reduce((a,t)=>a+Object.keys(t.q).length,0),keyed=B.tests.filter(t=>etsHasKey(t.id)).length,rkeyed=RT.filter(t=>etsHasKey(t.id)).length,lv=etsLevel(),L=ETS_LV[lv];
- const cnt=p=>etsUnits({parts:[p],lv}).reduce((a,u)=>a+u.qs.length,0);const wr=Object.keys(S.etsWrong||{}).length;const hist=(S.etsHist||[]).filter(h=>h.k==='mock').slice(-10);const LT=etsLTests(false),lk=LT.filter(t=>etsHasKey(t.id)).length,lcnt=p=>etsLUnits({parts:[p]}).reduce((a,u)=>a+u.qs.length,0),lh=hist.filter(h=>h.sk==='L').slice(-5);
+ const cnt=p=>etsUnits({parts:[p],lv}).reduce((a,u)=>a+u.qs.length,0);const wr=Object.keys(S.etsWrong||{}).length;const hist=(S.etsHist||[]).filter(h=>h.k==='mock').slice(-10);const LT=etsLTests(false),lk=LT.filter(t=>etsHasKey(t.id)).length,lcnt=p=>etsLUnits({parts:[p],lv}).reduce((a,u)=>a+u.qs.length,0),lh=hist.filter(h=>h.sk==='L').slice(-5);
  return `${off}${legacy}${list}
  ${keyed<B.tests.length?`<div class="note">⚠️ Một số đề chưa có đáp án. Bấm <b>🔑 Đáp án</b> ở bộ đề tương ứng và dán bảng đáp án – chỉ đề có đáp án mới dùng để luyện và chấm điểm. Đáp án nhập vào sẽ dùng chung cho cả nhóm.</div>`:''}
  <div class="card"><h3 style="margin:0 0 6px">🎚️ Trình độ</h3><div style="display:flex;flex-wrap:wrap;gap:6px">${[1,2,3,4].map(k=>`<button class="btn ${k===lv?'':'ghost'} sm" data-act="etsLv" data-v="${k}">${ETS_LV[k].name}</button>`).join('')}</div>
@@ -4172,7 +4172,7 @@ function vEtsTab(){if(!ETS.ready){etsLoad();return '<p class="mute">Đang tải 
  <div class="card"><h3 style="margin:0 0 4px">🏁 Thi thử Reading</h3><div class="small mute">100 câu · 75 phút · Part 5 (30) + Part 6 (4 đoạn) + Part 7 (29 câu đơn, 2 bộ đoạn kép, 3 bộ ba đoạn). Câu hỏi lấy <b>ngẫu nhiên</b> từ các đề đã có đáp án trong kho chung – mỗi lần thi một đề khác. Chấm và quy đổi điểm Reading /495.</div>
   <button class="btn" style="margin-top:10px" data-act="etsMockGo" ${rkeyed?'':'disabled'}>Bắt đầu thi thử</button>
   ${hist.filter(h=>h.sk!=='L').length?`<div class="small" style="margin-top:10px">Lần gần đây: ${hist.filter(h=>h.sk!=='L').map(h=>`<b>${h.s}</b> (${h.r}/${h.n}, ${h.d})`).join(' · ')}</div>`:''}</div>
- ${LT.length?`<div class="card"><h3 style="margin:0 0 4px">🎧 Listening (Part 1–4)</h3><div class="tiny mute" style="margin-bottom:8px">${LT.length} đề · có audio từng câu · nên đeo tai nghe. Câu lấy ngẫu nhiên từ các đề đã có đáp án.</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
+ ${LT.length?`<div class="card"><h3 style="margin:0 0 4px">🎧 Listening (Part 1–4)</h3><div class="tiny mute" style="margin-bottom:8px">${LT.length} đề · có audio từng câu + transcript · nên đeo tai nghe. Luyện theo trình độ đang chọn ở trên, ưu tiên câu bạn chưa làm. Chọn xong là thấy lời giải ngay.</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
   <button class="btn ghost" data-act="etsLPrac" data-p="1" ${lcnt(1)?'':'disabled'}>📷 Part 1 · 6 câu<br><span class="tiny mute">kho ${lcnt(1)} câu</span></button>
   <button class="btn ghost" data-act="etsLPrac" data-p="2" ${lcnt(2)?'':'disabled'}>💬 Part 2 · 10 câu<br><span class="tiny mute">kho ${lcnt(2)} câu</span></button>
   <button class="btn ghost" data-act="etsLPrac" data-p="3" ${lcnt(3)?'':'disabled'}>👥 Part 3 · 3 hội thoại<br><span class="tiny mute">kho ${lcnt(3)} câu</span></button>
@@ -4193,13 +4193,13 @@ TEST 02
 function etsPractice(p){const lv=etsLevel();const u=etsUnits({parts:[p],lv});let sel;
  if(p===5)sel=etsPickN(u,10).sort((a,b)=>a.qs[0]-b.qs[0]);else if(p===6)sel=etsPickN(u,2);else{sel=[];let c=0;for(const x of etsPickN(u,u.length)){sel.push(x);c+=x.qs.length;if(c>=10)break}}
  etsStart(sel,{title:'Luyện Part '+p+' · '+ETS_LV[lv].name.split(' (')[0]})}
-Object.assign(ACT,{etsPick:d=>{if(!EX||EX.show)return;EX.ans[d.k]=d.v;const y=scrollY;etsRender().then(()=>scrollTo(0,y))},
+Object.assign(ACT,{etsPick:d=>{if(!EX||EX.show)return;if(EX.inst&&EX.ans[d.k])return;EX.ans[d.k]=d.v;S.etsSeen=S.etsSeen||{};S.etsSeen[d.k]=(S.etsSeen[d.k]||0)+1;if(EX.inst){const[t,n]=d.k.split('_');const k=etsKey(t,n);if(k&&typeof beep==='function')beep(k===d.v)}const y=scrollY;etsRender().then(()=>scrollTo(0,y))},
  etsNav:d=>{if(!EX)return;const n=EX.i+(+d.d);if(n>=EX.items.length){if(EX.show)return etsResult();return etsSubmit()}if(n<0)return;EX.i=n;etsRender();scrollTo(0,0)},
  etsQuit:()=>{clearInterval(etsRender.tk);const au=document.getElementById('etsAu');if(au)au.pause();const b=EX&&EX.back;EX=null;V=b&&b.view==='toeichub'?b:{view:'toeichub',tab:'ets'};render();scrollTo(0,0)},
  etsReview:()=>{EX.show=1;EX.i=0;etsRender();scrollTo(0,0)},
  etsPrac:d=>etsPractice(+d.p),etsMockGo:()=>etsStart(etsMock(),{title:'Thi thử Reading',min:75,kind:'mock'}),
  etsFull:d=>{const T=ETS.bank&&ETS.bank.tests.find(x=>x.id===d.t);if(!T)return;etsStart(etsUnits({parts:[5,6,7],tests:[T.id],lvFilter:false}),{title:T.bname+' · Test '+String(T.no).padStart(2,'0'),min:75,kind:'mock'})},
- etsLPrac:d=>{const p=+d.p;const u=etsLUnits({parts:[p]});const sel=etsPickN(u,{1:6,2:10,3:3,4:3}[p]).sort((a,b)=>a.qs[0]-b.qs[0]);etsStart(sel,{title:'Luyện Listening '+L_PART[p]})},
+ etsLPrac:d=>{const p=+d.p;const lv=etsLevel();const u=etsLUnits({parts:[p],lv});const sel=etsPickN(u,{1:6,2:10,3:3,4:3}[p]).sort((a,b)=>a.qs[0]-b.qs[0]);etsStart(sel,{title:'Luyện Listening '+L_PART[p]+' · '+ETS_LV[lv].name.split(' (')[0]})},
  etsLMockGo:()=>etsStart(etsLMock(),{title:'Thi thử Listening',min:45,kind:'mock'}),
  etsLFull:d=>{const T=ETS.bank&&ETS.bank.tests.find(x=>x.id===d.t);if(!T)return;etsStart(etsLUnits({parts:[1,2,3,4],tests:[T.id]}),{title:T.bname+' · Test '+String(T.no).padStart(2,'0'),min:45,kind:'mock'})},
  etsWrongGo:()=>{const ks=Object.keys(S.etsWrong||{});const all=etsUnits({parts:[5,6,7],lvFilter:false}).concat(etsLUnits({parts:[1,2,3,4]}));const sel=all.filter(u=>u.qs.some(n=>ks.includes(qk(u.t,n))));etsStart(etsPickN(sel,12),{title:'Làm lại câu sai'})},
@@ -4229,5 +4229,81 @@ document.addEventListener('change',async e=>{if(e.target.id!=='etsFile')return;c
   for(const x of etsPickN(u,u.length,rnd)){if(c>=k)break;if(c+x.qs.length>k+2&&x.p!==5)continue;sel.push(x);c+=x.qs.length}sel.sort((a,b)=>a.p-b.p||a.qs[0]-b.qs[0]);etsStart(sel,{title:'Đề tự đăng · '+findNode(goalBy(d.g),d.n).label})};
  setTimeout(etsLoad,500)})();
 
+
+/* ===== v32: lời giải chi tiết · transcript · trình độ · câu ETS trong lộ trình & ngữ pháp · từ vựng/ngữ pháp hay gặp · chống lặp ===== */
+const ETS_GRN=()=>TH_G.map(u=>u.t);
+function etsExHtml(q){const gr=q.gr!=null&&q.gr>=0?ETS_GRN()[q.gr]:null;
+ return (q.ex?`<div style="margin-top:6px;white-space:pre-wrap">💡 ${esc(q.ex)}</div>`:'')+
+  (gr||q.lv?`<div class="tiny mute" style="margin-top:6px">${q.lv?'🎚️ Mức GĐ'+q.lv:''}${gr?(q.lv?' · ':'')+'📘 '+esc(gr):''}</div>`:'')+
+  (q.vo&&q.vo.length?`<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px">${q.vo.map(([w,m])=>`<span class="tiny" style="background:var(--soft);border-radius:8px;padding:3px 8px"><b>${esc(w)}</b> · ${esc(m)}</span>`).join('')}</div>`:'')}
+/* chống lặp: luôn ưu tiên câu/nhóm câu chưa làm (ít lần làm nhất), trong cùng mức thì ngẫu nhiên */
+(function(){const _pk=etsPickN;const seen=u=>u&&u.t&&u.qs?u.qs.reduce((a,n)=>a+((S.etsSeen||{})[qk(u.t,n)]||0),0)/u.qs.length:0;
+ etsPickN=function(arr,n,rnd){const a=_pk(arr,arr.length,rnd);if(!a.length||!a[0]||!a[0].qs)return a.slice(0,n);return a.map((u,i)=>[u,seen(u),i]).sort((x,y)=>x[1]-y[1]||x[2]-y[2]).map(x=>x[0]).slice(0,n)}})();
+/* câu Part 5/6 ETS dạng trắc nghiệm ngữ pháp (gq) theo chủ điểm & trình độ */
+const EG2GR={0:1,1:1,2:9,3:0,4:4,5:5,6:3,7:10,8:8,9:11,10:7,11:2,12:11,13:12,14:14,15:0,16:2,17:12,18:12,19:19,20:1,21:1,22:16,23:1,24:1,25:13,26:7,27:10,28:11,29:8,30:3};
+function etsGqPool(o){/* o:{gr, lv, parts} */const B=ETS.bank;if(!B)return[];const out=[];const OK=o.lv?ETS_LVOK[o.lv]:null;
+ for(const T of B.tests){if(T.sk==='L'||!etsHasKey(T.id))continue;for(let n=101;n<=146;n++){const q=T.q[n];if(!q||!q.stem||!/-{4,}/.test(q.stem))continue;if(o.gr!=null&&q.gr!==o.gr)continue;if(OK&&q.lv&&!OK.includes(q.lv))continue;
+  const k=etsKey(T.id,n);const ki='ABCD'.indexOf(k);if(ki<0||!q.o[ki])continue;out.push({key:qk(T.id,n),q:[q.stem.replace(/-{4,}/,'___'),[q.o[ki],...q.o.filter((x,j)=>j!==ki&&x)],0,(q.ex||'')+(q.vo&&q.vo.length?'\n📝 '+q.vo.map(v=>v[0]+': '+v[1]).join(' · '):'')]})}}return out}
+function etsGqPick(o,n){const pool=etsGqPool(o);const s=S.etsSeen||{};const a=shuffle(pool).sort((x,y)=>(s[x.key]||0)-(s[y.key]||0)).slice(0,n);
+ S.etsSeen=S.etsSeen||{};a.forEach(x=>S.etsSeen[x.key]=(S.etsSeen[x.key]||0)+1);return a.map(x=>({q:x.q,lang:'en-US',ets:x.key}))}
+function etsGoalLv(gid){const m=/^toeic-(\d)/.exec(gid||'');return m?+m[1]:etsLevel()}
+/* bài ngữ pháp (lộ trình & 21 chủ điểm): thêm câu ETS cùng chủ điểm, mỗi lần một bộ khác */
+(function(){const _g=gramGo;gramGo=function(){_g.apply(this,arguments);try{const id=G.skill&&G.skill.id||'';let gr=null;
+  if(/^th\d+$/.test(id))gr=+id.slice(2);else if(/^eg\d+$/.test(id))gr=EG2GR[+id.slice(2)];if(gr==null||!ETS.bank||G.skill.lang!=='en-US')return;
+  const lv=etsGoalLv(G.ctx&&G.ctx.gid);let x=etsGqPick({gr,lv},8);if(x.length<4)x=x.concat(etsGqPick({gr},8-x.length));
+  if(x.length){G.qs=G.qs.concat(x.map(it=>({it,k:'gq'})));G.qs=shuffle(G.qs);toast('+'+x.length+' câu từ đề ETS thật cùng chủ điểm',2500)}}catch(e){}}})();
+(function(){const _d=dtGq;dtGq=function(n){const out=_d(n);try{if(!ETS.bank)return out;const g=V&&V.g;const lv=etsGoalLv(g);
+  const sk=(n.tasks||[]).find(t=>/^sk:(eg|th)\d+$/.test(t));const gr=sk?(sk.startsWith('sk:th')?+sk.slice(5):EG2GR[+sk.slice(5)]):null;
+  let x=etsGqPick({gr,lv},4);if(x.length<4)x=x.concat(etsGqPick({lv},4-x.length));return out.concat(x)}catch(e){return out}}})();
+/* lộ trình Mục tiêu: mỗi chặng có Đọc + Nghe ETS theo đúng giai đoạn */
+const ETS_GD_PARTS={1:{R:[5],L:[1,2]},2:{R:[5,6],L:[1,2,3]},3:{R:[5,6,7],L:[1,2,3,4]},4:{R:[5,6,7],L:[1,2,3,4]}};
+function etsNodePlan(g,n){const lv=+g.id.slice(-1)||2;const P=ETS_GD_PARTS[lv];const sk=(n.tasks||[]).find(t=>t.startsWith('sk:tp'));const tp=sk?+sk.slice(5,6):0;
+ const big={day:1,review:2,mid:3,final:4}[n.type]||1;let R=P.R,L=P.L;
+ if(n.type==='day'&&tp){if(tp<=4){L=[tp];R=P.R.slice(0,1)}else{R=[tp].filter(x=>P.R.includes(x));if(!R.length)R=P.R}}
+ return{lv,R,L,nR:[0,8,15,25,35][big],nL:[0,6,12,20,30][big]}}
+function etsPickCount(units,k){const sel=[];let c=0;for(const x of etsPickN(units,units.length)){if(c>=k)break;if(c+x.qs.length>k+2&&x.qs.length>1&&sel.length)continue;sel.push(x);c+=x.qs.length}return sel.sort((a,b)=>a.p-b.p||a.qs[0]-b.qs[0])}
+ACT.etsNode2=d=>{const g=goalBy(d.g),n=findNode(g,d.n);if(!g||!n)return;const P=etsNodePlan(g,n);
+ const sel=d.s==='L'?etsPickCount(etsLUnits({parts:P.L,lv:P.lv}),P.nL):etsPickCount(etsUnits({parts:P.R,lv:P.lv}),P.nR);
+ if(!sel.length)return toast('Chưa có câu phù hợp trình độ này');S.etsNode=S.etsNode||{};S.etsNode[d.g+'|'+d.n+'|'+d.s]=today();save();
+ etsStart(sel,{title:(d.s==='L'?'🎧 Nghe ETS · ':'📘 Đọc ETS · ')+n.label})};
+/* thay khối “Câu từ đề tự đăng” cũ bằng khối Đọc + Nghe theo giai đoạn */
+(function(){const _o=openNode;openNode=function(gid,nid){_o(gid,nid);if(!/^toeic-\d/.test(gid)||!ETS.bank)return;const g=goalBy(gid),n=findNode(g,nid);if(!n||!['day','review','mid','final'].includes(n.type))return;
+ const st=states(g).st[nid];if(st==='lock'||st==='todo')return;const sh=$('#sheetHost .sheet');if(!sh)return;sh.querySelectorAll('[data-act=etsNode]').forEach(b=>{const t=b.closest('.task');if(t)t.remove()});
+ const P=etsNodePlan(g,n);const cR=etsUnits({parts:P.R,lv:P.lv}).length,cL=etsLUnits({parts:P.L,lv:P.lv}).length;if(!cR&&!cL)return;const dn=k=>S.etsNode&&S.etsNode[gid+'|'+nid+'|'+k];
+ const row=(k,ic,t,sub,c)=>c?`<div class="task"><div class="ti">${ic}</div><div class="tt"><h4 style="font-size:14.5px">${t}${dn(k)?' ✓':''}</h4><div class="tiny mute">${sub}</div></div><button class="btn sm ${dn(k)?'ghost':''}" data-act="etsNode2" data-g="${gid}" data-n="${nid}" data-s="${k}">${dn(k)?'Làm bộ khác':'Làm'}</button></div>`:'';
+ sh.insertAdjacentHTML('beforeend',`<div style="margin-top:12px"><div class="tiny mute" style="font-weight:800;letter-spacing:.06em">ĐỀ ETS THẬT · ${esc(ETS_LV[P.lv].name)}</div>
+  ${row('R','📘','Đọc ETS · ~'+P.nR+' câu','Part '+P.R.join(', ')+' · chọn câu chưa làm · có lời giải chi tiết',cR)}${row('L','🎧','Nghe ETS · ~'+P.nL+' câu','Part '+P.L.join(', ')+' · audio + transcript · có lời giải chi tiết',cL)}</div>`)}})();
+/* từ vựng & ngữ pháp hay gặp trong đề */
+function etsFreq(){const B=ETS.bank;if(!B)return null;if(etsFreq.c&&etsFreq.c.n===B.tests.length)return etsFreq.c;
+ const V={},G={};const txt=[];
+ for(const T of B.tests){if(!etsHasKey(T.id))continue;const gm={};T.g.forEach(g=>{for(let n=g.from;n<=g.to;n++)gm[n]=g});
+  for(const n in T.q){const q=T.q[n];const g=gm[n];txt.push([q.stem,...(q.o||[]),...(q.oT||[]),q.tq||'',g&&g.tr&&+n===g.from?g.tr:''].join(' ').toLowerCase());
+   if(q.gr!=null&&q.gr>=0){G[q.gr]=G[q.gr]||{n:0,R:0,L:0};G[q.gr].n++;G[q.gr][T.sk==='L'?'L':'R']++}
+   (q.vo||[]).forEach(([w,m])=>{const h=String(w).replace(/\s*\([^)]*\)\s*$/,'').trim().toLowerCase();if(!h||h.length<2)return;const e=V[h]=V[h]||{w:h,pos:(String(w).match(/\(([^)]*)\)\s*$/)||[])[1]||'',m,q:0,lv:9,sk:{}};e.q++;e.lv=Math.min(e.lv,q.lv||9);e.sk[T.sk||'R']=1})}}
+ const all=txt.join('\n');const vs=Object.values(V);vs.forEach(e=>{const re=new RegExp('\\b'+e.w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s+')+(e.w.includes(' ')?'':'(s|es|ed|d|ing|ly)?')+'\\b','g');e.f=(all.match(re)||[]).length;e.score=e.f+e.q*2});
+ vs.sort((a,b)=>b.score-a.score);etsFreq.c={n:B.tests.length,V:vs,G};return etsFreq.c}
+function etsVocItem(e){const ei=itemById&&itemById('en:'+e.w);if(ei)return ei;return{id:'ev:'+e.w,front:e.w,reading:'',pos:e.pos,back:e.m,example:'',alts:[e.w],typeAns:e.w,speak:e.w,lang:'en-US',kind:'vocab'}}
+(function(){const _i=itemById;itemById=function(id){const r=_i(id);if(r||!/^ev:/.test(id))return r;const F=etsFreq();const e=F&&F.V.find(x=>x.w===id.slice(3));return e?etsVocItem(e):null}})();
+function etsFreqOpen(){const F=etsFreq();if(!F)return toast('Kho đề chưa tải xong');const lv=S.etsFreqLv||etsLevel();const lim=S.etsFreqN||60;
+ const vs=F.V.filter(e=>e.lv<=lv).slice(0,lim);const gs=Object.entries(F.G).sort((a,b)=>b[1].n-a[1].n);const N=ETS_GRN();
+ $('#sheetHost').innerHTML=`<div class="scrim" data-act="scrim"><div class="sheet" role="dialog"><div class="grab"></div><div class="sh-top"><div style="flex:1"><h2>📊 Hay gặp trong đề ETS</h2><div class="small mute">Thống kê từ ${F.n} đề (Reading + Listening) · từ có lời giải gắn trình độ</div></div><button class="x" style="font-size:26px;color:var(--mute)" data-act="closeSheet">✕</button></div>
+ <h3 style="margin:8px 0">📘 Chủ điểm ngữ pháp ra nhiều nhất</h3>${gs.map(([k,v],i)=>`<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)"><b style="width:26px">${i+1}.</b><div style="flex:1"><b>${esc(N[k]||'')}</b><div class="tiny mute">${v.n} câu trong đề</div></div><button class="btn ghost sm" data-act="etsGrGo" data-k="${k}">Luyện</button><button class="btn ghost sm" data-act="etsGrRead" data-k="${k}">Lý thuyết</button></div>`).join('')}
+ <h3 style="margin:14px 0 6px">📝 Từ vựng hay gặp</h3><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">${[1,2,3,4].map(k=>`<button class="btn ${k===lv?'':'ghost'} sm" data-act="etsFreqLv" data-v="${k}">Đến GĐ${k}</button>`).join('')}</div>
+ <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px"><button class="btn sm" data-act="etsVocGo" data-m="cards">🃏 Học thẻ 20 từ</button><button class="btn ghost sm" data-act="etsVocGo" data-m="mcq">✅ Trắc nghiệm</button><button class="btn ghost sm" data-act="etsVocSrs">📦 Đưa ${vs.length} từ vào Ôn tập</button></div>
+ ${vs.map((e,i)=>`<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)"><span class="tiny mute" style="width:26px">${i+1}</span><div style="flex:1;min-width:0"><b>${esc(e.w)}</b>${e.pos?` <span class="tiny mute">(${esc(e.pos)})</span>`:''} · ${esc(e.m)}<div class="tiny mute">gặp ${e.f} lần · GĐ${e.lv>4?'?':e.lv}${e.sk.L?' · 🎧':''}${e.sk.R?' · 📘':''}</div></div><button class="btn ghost sm" data-act="say" data-t="${esc(e.w)}" data-l="en-US">🔊</button><button class="btn ghost sm" data-act="etsVocStar" data-w="${esc(e.w)}">${S.hard&&S.hard[etsVocItem(e).id]?'★':'☆'}</button></div>`).join('')}
+ ${F.V.filter(e=>e.lv<=lv).length>lim?`<button class="btn ghost" style="width:100%;margin-top:8px" data-act="etsFreqMore">Xem thêm</button>`:''}</div></div>`}
+Object.assign(ACT,{etsFreqOpen:()=>etsFreqOpen(),etsFreqLv:d=>{S.etsFreqLv=+d.v;S.etsFreqN=60;save();etsFreqOpen()},etsFreqMore:()=>{S.etsFreqN=(S.etsFreqN||60)+60;etsFreqOpen()},
+ etsVocGo:d=>{const F=etsFreq();const lv=S.etsFreqLv||etsLevel();const pool=F.V.filter(e=>e.lv<=lv).slice(0,S.etsFreqN||60);const its=etsPickN(pool,20).map(etsVocItem);if(its.length<4)return toast('Chưa đủ từ');
+  closeSheet(true);startGame({items:its,pool:pool.map(etsVocItem),mode:d.m==='cards'?'cards':'mcq',title:'Từ hay gặp trong đề ETS',th:'en'})},
+ etsVocSrs:()=>{const F=etsFreq();const lv=S.etsFreqLv||etsLevel();const its=F.V.filter(e=>e.lv<=lv).slice(0,S.etsFreqN||60).map(etsVocItem);srsAdd(its);save();toast('Đã đưa '+its.length+' từ vào Ôn tập (hộp 1)',3000)},
+ etsVocStar:d=>{const F=etsFreq();const e=F.V.find(x=>x.w===d.w);if(!e)return;const id=etsVocItem(e).id;S.hard=S.hard||{};if(S.hard[id])delete S.hard[id];else S.hard[id]=today();save();etsFreqOpen()},
+ etsGrGo:d=>{const k=+d.k;const lv=etsLevel();const all=etsUnits({parts:[5,6],lvFilter:false}).filter(u=>u.qs.some(n=>{const T=ETS.bank.tests.find(t=>t.id===u.t);return T&&T.q[n]&&T.q[n].gr===k}));
+  const L=etsLUnits({parts:[2]}).filter(u=>{const T=ETS.bank.tests.find(t=>t.id===u.t);return T&&T.q[u.qs[0]].gr===k});const pool=all.concat(L);if(!pool.length)return toast('Chưa có câu');
+  closeSheet(true);etsStart(etsPickN(pool,12),{title:'Chủ điểm: '+ETS_GRN()[k]})},
+ etsGrRead:d=>{closeSheet(true);V={view:'toeichub',tab:'gram',gi:+d.k};render();scrollTo(0,0)}});
+(function(){const _v=vEtsTab;vEtsTab=function(){let h=_v.apply(this,arguments);if(!ETS.bank)return h;const F=etsFreq();if(!F||!F.V.length)return h;
+ const top=F.V.filter(e=>e.lv<=etsLevel()).slice(0,8).map(e=>`<span class="tiny" style="background:var(--soft);border-radius:8px;padding:3px 8px"><b>${esc(e.w)}</b> · ${esc(e.m)}</span>`).join(' ');
+ const card=`<div class="card"><h3 style="margin:0 0 6px">📊 Từ vựng & ngữ pháp hay gặp trong đề</h3><div class="small mute">Tổng hợp từ lời giải ${F.n} đề ETS – từ gặp nhiều nhất, chủ điểm ngữ pháp ra nhiều nhất, lọc theo giai đoạn.</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">${top}</div><button class="btn sm" data-act="etsFreqOpen">Xem danh sách đầy đủ</button></div>`;
+ const i=h.indexOf('<div class="card"><h3 style="margin:0 0 6px">🎚️ Trình độ');return i>=0?h.slice(0,i)+card+h.slice(i):h+card}})();
 {const l=document.getElementById("logoM");if(l)l.innerHTML=mochiSVG(42,"happy");}render(); setTimeout(initSync,0);
 if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})})}</script></body></html>
