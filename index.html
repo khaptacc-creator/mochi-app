@@ -4032,7 +4032,7 @@ async function etsClear(){const d=await etsDB();await new Promise(ok=>{const t=d
 async function etsLoad(){if(ETS.loading)return;ETS.loading=true;
  if(!ETS.ready){try{const c=await etsGet('kv','shared');if(c&&c.banks)etsMerge(c.banks)}catch(e){}try{ETS.legacy=await etsGet('kv','bank')||null}catch(e){}ETS.ready=true;etsRefresh()}
  try{const list=await sbRpc('mochi_bank_list',{p_key:ACC.key||null});const old={};ETS.banks.forEach(b=>old[b.id]=b);const banks=[];
-  for(const m of list){const data=(old[m.id]&&old[m.id].data)||await sbRpc('mochi_bank_get',{p_id:m.id});if(data)banks.push({...m,data})}
+  for(const m of list){const data=(old[m.id]&&old[m.id].up===m.up&&old[m.id].data)||await sbRpc('mochi_bank_get',{p_id:m.id});if(old[m.id]&&old[m.id].up!==m.up&&typeof etsFreq==='function')etsFreq.c=null;if(data)banks.push({...m,data})}
   etsMerge(banks);ETS.online=true;etsSaveCache()}catch(e){ETS.online=false}
  ETS.at=Date.now();ETS.listKey=ACC.key||null;ETS.loading=false;etsRefresh()}
 async function etsImg(name){if(/^https?:/.test(name))return name;if(ETS.img[name])return ETS.img[name];const b=await etsGet('img',name);if(!b)return '';return ETS.img[name]=URL.createObjectURL(b)}
