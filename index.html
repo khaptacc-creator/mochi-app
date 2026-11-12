@@ -2827,9 +2827,9 @@ function pathJP(lv){const L=JPL[lv],d=lv[1],{K,RV}=JPL_ITEMS[lv];const V=JPL_ITE
    nodes.push({id:'rv'+u,type:'review',label:'Kiểm tra phần '+(u+1),sub:'Từ vựng · Kanji · Ngữ pháp',items:uIt,gq:uG,n:30,tasks:['test']});all.push(...uIt);gq.push(...uG);
    if(u===2)nodes.push({id:'mid',type:'mid',label:'Thi giữa kỳ',sub:'Nửa đầu N1',items:all.slice(),gq:gq.slice(),n:40,tasks:['test']});
    units.push({title:`Phần ${u+1} · ${W[a].t.split(' · ')[1]} → ${W[b-1].t.split(' · ')[1]}`,sub:`Riki N1 Căn bản · ${uIt.length} mục`,nodes})});
-  const rest=extraV.concat(extraK);if(rest.length||gi<nG){const nodes=[];const per=Math.ceil(rest.length/Math.max(1,nG-gi))||rest.length;let k=0;
-   while(gi<nG||k<rest.length){const part=rest.slice(k,k+per);k+=per;no++;const tasks=['sk:j1g'+Math.min(gi,nG-1)];if(part.length)tasks.unshift('cards','mcq');gq.push(...L.gram[Math.min(gi,nG-1)].q.map(q=>({q,lang:'ja-JP'})));
-    nodes.push({id:'x'+no,type:'day',no,label:'Ngày '+no,sub:(L.gram[Math.min(gi,nG-1)].t)+' · '+part.length+' mục',items:part,tasks});all.push(...part);gi++;if(gi>=nG&&k>=rest.length)break}
+  const rest=extraV.concat(extraK);if(rest.length||gi<nG){const nodes=[];const per=Math.min(24,Math.ceil(rest.length/Math.max(1,nG-gi))||rest.length)||1;let k=0;
+   while(gi<nG||k<rest.length){const part=rest.slice(k,k+per);k+=per;no++;const hasG=gi<nG;const tasks=hasG?['sk:j1g'+gi]:['type'];if(part.length)tasks.unshift('cards','mcq');if(hasG)gq.push(...L.gram[gi].q.map(q=>({q,lang:'ja-JP'})));
+    nodes.push({id:'x'+no,type:'day',no,label:'Ngày '+no,sub:(hasG?L.gram[gi].t:'Từ vựng & Kanji N1')+' · '+part.length+' mục',items:part,tasks});all.push(...part);gi++;if(gi>=nG&&k>=rest.length)break}
    units.push({title:'Mở rộng · Ngữ pháp N1 & từ bổ sung',sub:'Claude biên soạn thêm',nodes})}
   units.push({title:'Về đích · Thi thử JLPT N1',sub:'Đề thi thử trong app + đề mẫu chính thức',nodes:[{id:'final',type:'final',label:'Thi cuối kỳ',sub:'Toàn bộ N1',items:all,gq,n:50,tasks:['test']}].concat(window.jpmNodes?jpmNodes('n1'):[]).concat([
    {id:'mockA',type:'mock',label:'Đề mẫu chính thức N1',sub:'jlpt.jp',links:[L_JLPT],tasks:['mock'],note:JP_MOCK.n1[0]+' Làm đúng giờ rồi nhập số câu đúng.'}])});
