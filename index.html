@@ -4440,7 +4440,7 @@ ACT.wrNodeGo=d=>{const g=goalBy(d.g),n=findNode(g,d.n);const S0=wrSets();WRS_NOD
  const sec2=document.createElement('div');sec2.className='sec fx in';sec2.innerHTML='<h2>Luyện tập & công cụ</h2>';add(sec2);
  const grid=document.createElement('div');grid.className='tiles home-tiles fx in';if(S.subj==='jp'){const b=document.createElement('button');b.className='tile';b.dataset.act='wrOpen';b.innerHTML='<span class="ti-ic" style="background:linear-gradient(135deg,#ff9a9e,#e0556b)">✍️</span><b>Luyện viết chữ</b><span class="tiny mute">Kana & Kanji</span>';grid.appendChild(b)}
  tilesG.forEach(tg=>[...tg.children].forEach(c=>grid.appendChild(c)));if(met){met.classList.add('home-met');grid.appendChild(met)}add(grid);
- add(...lib,...rest);if(quote){quote.classList.add('home-quote');add(quote)}add(src);h=out.innerHTML}catch(e){}return h}})();
+ add(...lib,...rest);if(quote){quote.classList.add('home-quote');add(quote)}add(src);[...out.children].forEach(c=>c.querySelectorAll('.fx').forEach(x=>{x.classList.remove('fx');x.classList.remove('in')}));h=out.innerHTML}catch(e){}return h}})();
 (function(){const st=document.createElement('style');st.textContent=`.home-hero{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;align-items:stretch;margin-bottom:6px}.home-hero .hh-l{display:flex;flex-direction:column;gap:10px}.home-hero .hh-l>*{margin:0!important}.home-hero .hh-r{margin:0!important}
 @media(max-width:760px){.home-hero{grid-template-columns:1fr}}
 .home-tiles{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important;gap:10px!important}.home-tiles .home-met{grid-column:span 2;margin:0!important;min-height:0}.home-tiles .home-met>*{height:100%}
