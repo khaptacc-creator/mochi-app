@@ -4252,7 +4252,7 @@ function etsGoalLv(gid){const m=/^toeic-(\d)/.exec(gid||'');return m?+m[1]:etsLe
   if(/^th\d+$/.test(id))gr=+id.slice(2);else if(/^eg\d+$/.test(id))gr=EG2GR[+id.slice(2)];if(gr==null||!ETS.bank||G.skill.lang!=='en-US')return;
   const lv=etsGoalLv(G.ctx&&G.ctx.gid);let x=etsGqPick({gr,lv},8);if(x.length<4)x=x.concat(etsGqPick({gr},8-x.length));
   if(x.length){G.qs=G.qs.concat(x.map(it=>({it,k:'gq'})));G.qs=shuffle(G.qs);toast('+'+x.length+' câu từ đề ETS thật cùng chủ điểm',2500)}}catch(e){}}})();
-(function(){const _d=dtGq;dtGq=function(n){const out=_d(n);try{if(!ETS.bank)return out;const g=V&&V.g;const lv=etsGoalLv(g);
+(function(){const _d=dtGq;dtGq=function(n){const out=_d(n);try{if(!ETS.bank)return out;const g=V&&V.g;if(!/^toeic-/.test(g||'')||(n.items||[]).some(i=>i&&i.lang&&i.lang!=='en-US'))return out;const lv=etsGoalLv(g);
   const sk=(n.tasks||[]).find(t=>/^sk:(eg|th)\d+$/.test(t));const gr=sk?(sk.startsWith('sk:th')?+sk.slice(5):EG2GR[+sk.slice(5)]):null;
   let x=etsGqPick({gr,lv},4);if(x.length<4)x=x.concat(etsGqPick({lv},4-x.length));return out.concat(x)}catch(e){return out}}})();
 /* lộ trình Mục tiêu: mỗi chặng có Đọc + Nghe ETS theo đúng giai đoạn */
