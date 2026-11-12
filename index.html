@@ -4457,16 +4457,19 @@ function etsUnitText(u){const T=ETS.bank&&ETS.bank.tests.find(t=>t.id===u.t);if(
  u.qs.forEach(n=>{const q=T.q[n];if(q)s.push(q.stem||'',...(q.o||[]),...(q.oT||[]),q.tq||'')});if(g.tr)s.push(g.tr);if(g.text)s.push(g.text);return s.join(' ')}
 function etsHard(u,band){/* tỉ lệ từ nội dung vượt cấp band (1=A1 … 5=C1) */const k=u.t+':'+u.qs[0]+':'+band.toFixed(2);etsHard.c=etsHard.c||{};if(k in etsHard.c)return etsHard.c[k];
  const toks=(etsUnitText(u).match(/[A-Za-z][A-Za-z'’-]*/g)||[]);let n=0,h=0;
- for(const raw of toks){if(/^[A-Z]/.test(raw)&&!wordLvMap().has(raw.toLowerCase()))continue;const t=raw.toLowerCase().replace(/[’']s$/,'').replace(/[’']/g,"'");if(t.length<2||ETS_EASY.has(t))continue;n++;if(tokLv(t)>band+0.25)h++}
+ for(const raw of toks){if(/^[A-Z]/.test(raw)&&!wordLvMap().has(raw.toLowerCase()))continue;const t=raw.toLowerCase().replace(/[’']s$/,'').replace(/[’']/g,"'");if(t.length<2||ETS_EASY.has(t))continue;n++;h+=Math.max(0,tokLv(t)-band)}
  return etsHard.c[k]=n?h/n:0}
 /* trình độ (band) của người học tại một chặng: tăng dần trong giai đoạn */
 function etsBand(g,n){const lv=+(/toeic-(\d)/.exec(g.id)||[0,2])[1];const all=pathOf(g).flatMap(u=>u.nodes);const days=all.filter(x=>x.type==='day');
  const k=all.indexOf(n);const i=n.type==='day'?days.indexOf(n):all.slice(0,k).filter(x=>x.type==='day').length-1;const p=Math.max(0,i)/Math.max(1,days.length-1);return lv+p}
-function etsByLevel(units,band,k){/* ưu tiên câu chưa làm, rồi câu dễ nhất với trình độ hiện tại; chỉ lấy câu có ≤15% từ vượt trình độ, thiếu thì lấy câu gần nhất */
+function etsByLevel(units,band,k){/* ưu tiên câu chưa làm; trong đó chọn câu vừa sức: ít từ vượt trình độ (≤0,25) và mức suy luận gần mức mục tiêu của chặng; chặng đầu ít câu hợp thì chỉ ra số câu hợp (tối thiểu 3) */
+ const lv=Math.min(4,Math.max(1,Math.floor(band+1e-9)));const OK=ETS_LVOK[lv]||[lv];const p=Math.max(0,Math.min(1,band-lv));const tgt=OK[0]+p*(OK[OK.length-1]-OK[0]);
+ const qlv=u=>{if(u.g&&u.g.lv)return u.g.lv;const T=ETS.bank.tests.find(t=>t.id===u.t);return(T&&T.q[u.qs[0]]&&T.q[u.qs[0]].lv)||tgt};
  const seen=u=>u.qs.reduce((a,n)=>a+((S.etsSeen||{})[qk(u.t,n)]||0),0)/u.qs.length;
- const sc=shuffle(units).map(u=>({u,h:etsHard(u,band),s:seen(u)}));const ok=sc.filter(x=>x.h<=0.15),rest=sc.filter(x=>x.h>0.15);
- ok.sort((a,b)=>a.s-b.s||a.h-b.h);rest.sort((a,b)=>a.h-b.h||a.s-b.s);const ord=ok.concat(rest);const sel=[];let c=0;
- for(const x of ord){if(c>=k)break;if(c+x.u.qs.length>k+2&&x.u.qs.length>1&&sel.length)continue;sel.push(x.u);c+=x.u.qs.length}
+ const sc=shuffle(units).map(u=>{const h=etsHard(u,band);return{u,h,d:h+0.2*Math.abs(qlv(u)-tgt),s:seen(u)}});const ok=sc.filter(x=>x.h<=0.25),rest=sc.filter(x=>x.h>0.25);
+ ok.sort((a,b)=>a.s-b.s||a.d-b.d);rest.sort((a,b)=>a.h-b.h||a.s-b.s);const okQ=ok.reduce((a,x)=>a+x.u.qs.length,0);const kk=okQ>=k?k:Math.max(Math.min(k,3),okQ);
+ const ord=ok.concat(rest);const sel=[];let c=0;
+ for(const x of ord){if(c>=kk)break;if(c+x.u.qs.length>kk+2&&x.u.qs.length>1&&sel.length)continue;sel.push(x.u);c+=x.u.qs.length}
  return{sel:sel.sort((a,b)=>a.p-b.p||a.qs[0]-b.qs[0]),fit:ok.length}}
 /* mức GĐ dự phòng cho câu chưa có lời giải gắn mức (theo vị trí câu trong đề ETS – đề xếp từ dễ đến khó) */
 function etsAutoLv(){const B=ETS.bank;if(!B||B._alv)return;B._alv=1;
@@ -4486,7 +4489,7 @@ ACT.etsNode2=d=>{const g=goalBy(d.g),n=findNode(g,d.n);if(!g||!n)return;etsAutoL
 /* câu ETS trong bài test tổng & bài ngữ pháp TOEIC: cũng xếp theo độ khó từ vựng */
 (function(){const _p=etsGqPick;etsGqPick=function(o,n){try{const gid=(etsGqPick.nd&&etsGqPick.gid)||(typeof G!=='undefined'&&G&&G.ctx&&G.ctx.gid)||(V&&V.g);const g=gid&&goalBy(gid);const nd=etsGqPick.nd||(g&&typeof G!=='undefined'&&G&&G.ctx&&G.ctx.nid&&findNode(g,G.ctx.nid));if(!g||!/^toeic-/.test(g.id))return _p(o,n);
   const band=nd?etsBand(g,nd):(+g.id.slice(-1));const pool=etsGqPool(o);const sc=pool.map(x=>{const[t,q]=x.key.split('_');return{x,h:etsHard({t,qs:[+q]},band),s:(S.etsSeen||{})[x.key]||0}});
-  sc.sort((a,b)=>(a.h>0.15)-(b.h>0.15)||a.s-b.s||a.h-b.h);const a=sc.slice(0,n).map(y=>y.x);S.etsSeen=S.etsSeen||{};a.forEach(x=>S.etsSeen[x.key]=(S.etsSeen[x.key]||0)+1);
+  sc.sort((a,b)=>(a.h>0.25)-(b.h>0.25)||a.s-b.s||a.h-b.h);const a=sc.slice(0,n).map(y=>y.x);S.etsSeen=S.etsSeen||{};a.forEach(x=>S.etsSeen[x.key]=(S.etsSeen[x.key]||0)+1);
   return a.map(x=>({q:x.q,lang:'en-US',ets:x.key}))}catch(e){return _p(o,n)}}})();
 (function(){const _d=dtGq;dtGq=function(n){etsGqPick.nd=n;etsGqPick.gid=V&&V.g;try{return _d(n)}finally{etsGqPick.nd=null}}})();
 {const l=document.getElementById("logoM");if(l)l.innerHTML=mochiSVG(42,"happy");}render(); setTimeout(initSync,0);
