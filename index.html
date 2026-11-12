@@ -4334,5 +4334,116 @@ Object.assign(ACT,{etsFreqOpen:()=>etsFreqOpen(),etsFreqLv:d=>{S.etsFreqLv=+d.v;
  const top=F.V.filter(e=>e.lv<=etsLevel()).slice(0,8).map(e=>`<span class="tiny" style="background:var(--soft);border-radius:8px;padding:3px 8px"><b>${esc(e.w)}</b> · ${esc(e.m)}</span>`).join(' ');
  const card=`<div class="card"><h3 style="margin:0 0 6px">📊 Từ vựng & ngữ pháp hay gặp trong đề</h3><div class="small mute">Tổng hợp từ lời giải ${F.n} đề ETS – từ gặp nhiều nhất, chủ điểm ngữ pháp ra nhiều nhất, lọc theo giai đoạn.</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">${top}</div><button class="btn sm" data-act="etsFreqOpen">Xem danh sách đầy đủ</button></div>`;
  const i=h.indexOf('<div class="card"><h3 style="margin:0 0 6px">🎚️ Trình độ');return i>=0?h.slice(0,i)+card+h.slice(i):h+card}})();
+
+/* ===== v34: Luyện viết chữ Nhật (kana + kanji) · trang chủ gọn ===== */
+/* --- dữ liệu chữ để viết --- */
+function wrSets(){if(wrSets.c)return wrSets.c;const kana=new Map();
+ try{pathOf(goalBy('jlpt-n5')).flatMap(u=>u.nodes).flatMap(n=>n.items||[]).forEach(i=>{if(i.kind==='kana'&&[...i.front].length===1&&!kana.has(i.front))kana.set(i.front,i)})}catch(e){}
+ const kv=[...kana.values()];const toW=i=>({ch:i.front,id:i.id,read:i.kind==='kana'?i.back:(i.reading||''),mean:i.kind==='kana'?'':(i.back||''),ex:i.example||'',kind:i.kind});
+ const lv={n5:KJ_ITEMS};try{for(const k of ['n4','n3','n2','n1'])lv[k]=(JPL_ITEMS[k]&&JPL_ITEMS[k].K)||[]}catch(e){}
+ return wrSets.c={hira:kv.filter(i=>/[぀-ゟ]/.test(i.front)).map(toW),kata:kv.filter(i=>/[゠-ヿ]/.test(i.front)).map(toW),
+  ...Object.fromEntries(Object.entries(lv).map(([k,a])=>[k,a.filter(i=>[...i.front].length===1).map(toW)])),toW}}
+const WR_SETN={hira:'Hiragana',kata:'Katakana',n5:'Kanji N5',n4:'Kanji N4',n3:'Kanji N3',n2:'Kanji N2',n1:'Kanji N1',weak:'Chữ hay viết sai',node:'Chữ của chặng'};
+const WR_MODES={trace:['✍️','Viết theo','Tô theo nét mờ, xem thứ tự nét'],ten:['🔟','Viết 10 lần','3 ô có nét mờ + 7 ô tự viết, như vở tập viết'],mem:['🧠','Nhớ rồi viết','Xem chữ vài giây, ẩn đi, tự viết lại'],read:['👀','Nhìn cách đọc rồi viết','Chỉ thấy cách đọc + nghĩa, tự viết ra chữ']};
+/* --- thứ tự nét: KanjiVG (CC BY-SA 3.0) --- */
+const KVG_URL=c=>'https://cdn.jsdelivr.net/gh/KanjiVG/kanjivg@master/kanji/'+c.codePointAt(0).toString(16).padStart(5,'0')+'.svg';
+async function kvgGet(ch){kvgGet.m=kvgGet.m||{};if(ch in kvgGet.m)return kvgGet.m[ch];
+ try{const t=await fetch(KVG_URL(ch)).then(r=>{if(!r.ok)throw new Error(r.status);return r.text()});const d=new DOMParser().parseFromString(t,'image/svg+xml');
+  const ps=[...d.querySelectorAll('path')].filter(p=>/-s\d+$/.test(p.id||'')).sort((a,b)=>+a.id.split('-s').pop()-+b.id.split('-s').pop()).map(p=>p.getAttribute('d'));
+  const nums=[...d.querySelectorAll('text')].map(t=>{const m=/matrix\(1 0 0 1 ([\d.]+) ([\d.]+)\)/.exec(t.getAttribute('transform')||'');return m?[+m[1],+m[2],t.textContent]:null}).filter(Boolean);
+  return kvgGet.m[ch]=ps.length?{ps,nums}:null}catch(e){return kvgGet.m[ch]=null}}
+function kvgSVG(k,o){/* o:{color,width,nums,anim,id} */o=o||{};if(!k)return'';const W=o.width||4;
+ return `<svg viewBox="0 0 109 109" class="kvg" ${o.id?`id="${o.id}"`:''} style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">${k.ps.map((d,i)=>`<path d="${d}" fill="none" stroke="${o.color||'#cfd3dc'}" stroke-width="${W}" stroke-linecap="round" stroke-linejoin="round" ${o.anim?`class="kvs" style="--i:${i}"`:''}/>`).join('')}${o.nums?k.nums.map(([x,y,t])=>`<text x="${x}" y="${y}" font-size="7" fill="#e0556b" font-weight="700">${t}</text>`).join(''):''}</svg>`}
+function kvgAnimate(svg){if(!svg)return;const ps=[...svg.querySelectorAll('path')];let t=0;ps.forEach((p,i)=>{const L=p.getTotalLength();p.style.transition='none';p.style.strokeDasharray=L;p.style.strokeDashoffset=L;
+  const dur=Math.max(250,L*9);setTimeout(()=>{p.style.transition=`stroke-dashoffset ${dur}ms linear`;p.style.strokeDashoffset=0},t+30);t+=dur+120})}
+/* --- ô viết tay --- */
+function wrBoxHTML(i,o){o=o||{};return `<div class="wrbox ${o.sm?'sm':''}" data-b="${i}"><svg viewBox="0 0 100 100" class="wrgrid"><rect x="1" y="1" width="98" height="98" rx="6" fill="#fff" stroke="#e7c9d0" stroke-width="1.5"/><path d="M50 2V98M2 50H98" stroke="#f1d7dd" stroke-width="1" stroke-dasharray="3 3"/></svg><div class="wrguide"></div><canvas></canvas><div class="wrreveal"></div></div>`}
+function wrBindBox(box){const cv=box.querySelector('canvas');const r=box.getBoundingClientRect();const dpr=window.devicePixelRatio||1;cv.width=r.width*dpr;cv.height=r.height*dpr;
+ const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#2b2d42';ctx.lineWidth=Math.max(3,r.width/26);
+ const st={strokes:[],cur:null};box._wr=st;const pt=e=>{const b=cv.getBoundingClientRect();return[e.clientX-b.left,e.clientY-b.top]};
+ const redraw=()=>{ctx.clearRect(0,0,cv.width,cv.height);for(const s of st.strokes){ctx.beginPath();s.forEach(([x,y],j)=>j?ctx.lineTo(x,y):ctx.moveTo(x,y));if(s.length===1)ctx.lineTo(s[0][0]+.1,s[0][1]);ctx.stroke()}};st.redraw=redraw;
+ cv.onpointerdown=e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);st.cur=[pt(e)];st.strokes.push(st.cur);redraw()};
+ cv.onpointermove=e=>{if(!st.cur)return;e.preventDefault();st.cur.push(pt(e));redraw()};
+ cv.onpointerup=cv.onpointercancel=()=>{st.cur=null;const c=document.getElementById('wrCnt');if(c&&WRS)c.textContent=wrStrokeTxt()};
+ cv.style.touchAction='none'}
+/* --- phiên luyện --- */
+let WRS=null;
+function wrStart(chars,mode,title){if(!chars||!chars.length)return toast('Chưa có chữ để luyện');WRS={chars:chars.slice(0,40),i:0,mode,title:title||'Luyện viết',phase:0,res:[],back:V};V={view:'write'};render();scrollTo(0,0)}
+function wrStrokeTxt(){const box=document.querySelector('.wrbox[data-b="0"]');const n=box&&box._wr?box._wr.strokes.length:0;const k=WRS&&WRS.k;return k?`Bạn đã viết ${n} nét · chữ này có ${k.ps.length} nét`:`Bạn đã viết ${n} nét`}
+async function wrRender(){const W=WRS;if(!W)return;const c=W.chars[W.i];const md=WR_MODES[W.mode];W.k=await kvgGet(c.ch);if(WRS!==W||W.chars[W.i]!==c)return;const k=W.k;
+ const info=`<div class="wrinfo">${W.mode==='read'||W.phase===1?'':`<div class="wrbig ja">${esc(c.ch)}</div>`}<div><div class="ja" style="font-size:18px;font-weight:800">${esc(c.read||'')}</div>${c.mean?`<div class="small">${esc(c.mean)}</div>`:''}${c.ex&&W.mode!=='read'?`<div class="tiny mute ja">${esc(c.ex)}</div>`:''}</div></div>`;
+ let body='';
+ if(W.mode==='ten'){body=`<div class="wrten">${Array.from({length:10},(_,i)=>wrBoxHTML(i,{sm:1})).join('')}</div><div class="tiny mute" style="text-align:center;margin-top:6px">3 ô đầu có nét mờ để tô · 7 ô sau tự viết theo trí nhớ</div>`}
+ else body=`<div style="display:flex;justify-content:center">${wrBoxHTML(0)}</div><div class="tiny mute" id="wrCnt" style="text-align:center;margin-top:6px">${k?'Chữ này có '+k.ps.length+' nét':''}</div>`;
+ const showGuide=W.mode==='trace'||(W.mode==='mem'&&W.phase===0);
+ const btns=W.phase===2?`<div class="row" style="justify-content:center;gap:10px;margin-top:12px"><button class="btn ghost" data-act="wrGrade" data-ok="0">✗ Chưa đúng</button><button class="btn" data-act="wrGrade" data-ok="1">✓ Viết đúng</button></div>`
+  :`<div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn ghost sm" data-act="wrUndo">↶ Xoá nét</button><button class="btn ghost sm" data-act="wrClear">🧽 Xoá hết</button>${k&&W.mode!=='read'&&!(W.mode==='mem'&&W.phase===1)?'<button class="btn ghost sm" data-act="wrAnim">▶ Thứ tự nét</button>':''}
+   ${W.mode==='mem'&&W.phase===0?'<button class="btn sm" data-act="wrHide">Đã nhớ – ẩn chữ đi</button>':W.mode==='trace'||W.mode==='ten'?'<button class="btn sm" data-act="wrNext">Xong ✓</button>':'<button class="btn sm" data-act="wrCheck">Kiểm tra</button>'}</div>`;
+ app().innerHTML=`<div class="gtop"><button class="x" data-act="wrQuit">✕</button><div style="flex:1"><div class="tiny mute" style="font-weight:800">${md[0]} ${esc(md[1].toUpperCase())} · ${esc(W.title)}</div><div class="bar" style="margin-top:4px"><i style="width:${Math.round(W.i/W.chars.length*100)}%"></i></div></div><b class="small">${W.i+1}/${W.chars.length}</b></div>
+  <div class="card prompt" style="padding:14px">${info}<div class="tiny mute" style="margin-top:6px">${esc(md[2])}${W.mode==='mem'?(W.phase===0?' · Bước 1: nhìn kỹ chữ':' · Bước 2: viết lại không nhìn'):''}</div></div>${body}${btns}
+  <div class="tiny mute" style="text-align:center;margin-top:14px">Thứ tự nét: KanjiVG (CC BY-SA 3.0)${k?'':' · chưa tải được thứ tự nét chữ này (cần mạng)'}</div>`;
+ document.querySelectorAll('.wrbox').forEach((b,i)=>{wrBindBox(b);const g=b.querySelector('.wrguide');
+  if(k&&((W.mode==='ten'&&i<3)||(i===0&&showGuide)))g.innerHTML=kvgSVG(k,{color:'#d9dce4',width:5,nums:W.mode==='trace'&&i===0});
+  else if(!k&&((W.mode==='ten'&&i<3)||(i===0&&showGuide)))g.innerHTML=`<div class="ja wrfont">${esc(c.ch)}</div>`;
+  if(W.phase===2&&i===0)b.querySelector('.wrreveal').innerHTML=k?kvgSVG(k,{color:'rgba(224,85,107,.55)',width:4}):`<div class="ja wrfont" style="color:rgba(224,85,107,.5)">${esc(c.ch)}</div>`});
+ if(W.phase===2&&W.strokes){const b=document.querySelector('.wrbox[data-b="0"]');b._wr.strokes=W.strokes;b._wr.redraw();const e=document.getElementById('wrCnt');if(e)e.textContent=wrStrokeTxt()+' · nét đỏ là chữ đúng'}
+ if(k&&(W.mode==='trace'||(W.mode==='mem'&&W.phase===0))&&W.anim!==W.i){W.anim=W.i;setTimeout(()=>ACT.wrAnim(),300)}}
+function wrDone(){const W=WRS;const ok=W.res.filter(x=>x).length,n=W.res.length;addXP(Math.max(2,W.i*2));save();
+ app().innerHTML=`<div class="card" style="text-align:center;padding:26px"><div style="font-size:46px">✍️</div><h2>Xong ${W.chars.length} chữ!</h2>${n?`<p>Viết đúng <b>${ok}/${n}</b> chữ.${n-ok?' Chữ sai đã vào mục “Chữ hay viết sai”.':''}</p>`:'<p>Luyện đều tay mỗi ngày nhé.</p>'}
+ <div class="row" style="justify-content:center;gap:10px;margin-top:10px"><button class="btn ghost" data-act="wrAgain">Luyện lại</button><button class="btn" data-act="wrQuit">Xong</button></div></div>`}
+Object.assign(ACT,{
+ wrUndo:()=>{const b=document.querySelector('.wrbox[data-b="0"]');const all=[...document.querySelectorAll('.wrbox')].filter(x=>x._wr&&x._wr.strokes.length);const t=WRS&&WRS.mode==='ten'?all[all.length-1]:b;if(t&&t._wr){t._wr.strokes.pop();t._wr.redraw()}const c=document.getElementById('wrCnt');if(c)c.textContent=wrStrokeTxt()},
+ wrClear:()=>{document.querySelectorAll('.wrbox').forEach(b=>{if(b._wr){b._wr.strokes=[];b._wr.redraw()}});const c=document.getElementById('wrCnt');if(c)c.textContent=wrStrokeTxt()},
+ wrAnim:()=>{if(!WRS||!WRS.k)return;const b=document.querySelector('.wrbox[data-b="0"] .wrreveal');if(!b)return;b.innerHTML=kvgSVG(WRS.k,{color:'#e0556b',width:4.5,anim:1});kvgAnimate(b.querySelector('svg'));clearTimeout(ACT.wrAnim.t);ACT.wrAnim.t=setTimeout(()=>{if(b.isConnected&&WRS&&WRS.phase!==2)b.innerHTML=''},WRS.k.ps.length*900+1500)},
+ wrHide:()=>{WRS.phase=1;wrRender()},
+ wrCheck:()=>{const b=document.querySelector('.wrbox[data-b="0"]');if(!b._wr.strokes.length)return toast('Hãy viết chữ trước đã');WRS.strokes=b._wr.strokes;WRS.phase=2;wrRender()},
+ wrGrade:d=>{const W=WRS,c=W.chars[W.i],ok=d.ok==='1';W.res.push(ok);S.wr=S.wr||{};const r=S.wr[c.ch]=S.wr[c.ch]||{n:0,ok:0};r.n++;if(ok)r.ok++;r.d=today();S.wrWeak=S.wrWeak||{};if(ok){if(S.wrWeak[c.ch]&&r.ok>=2)delete S.wrWeak[c.ch]}else S.wrWeak[c.ch]=today();if(typeof beep==='function')beep(ok);ACT.wrNext()},
+ wrNext:()=>{const W=WRS;if(W.mode==='trace'||W.mode==='ten'){S.wr=S.wr||{};const r=S.wr[W.chars[W.i].ch]=S.wr[W.chars[W.i].ch]||{n:0,ok:0};r.n++;r.d=today()}W.i++;W.phase=0;W.strokes=null;if(W.i>=W.chars.length)return wrDone();wrRender();scrollTo(0,0)},
+ wrAgain:()=>{const W=WRS;wrStart(shuffle(W.chars),W.mode,W.title)},
+ wrQuit:()=>{const b=WRS&&WRS.back;WRS=null;save();V=b&&b.view!=='write'?b:{view:'home'};render();scrollTo(0,0)},
+ wrOpen:d=>wrOpen(d&&d.s),
+ wrGo:d=>{const S0=wrSets();let a=d.s==='weak'?Object.keys(S.wrWeak||{}).map(ch=>[...S0.hira,...S0.kata,...S0.n5,...S0.n4,...S0.n3,...S0.n2,...S0.n1].find(x=>x.ch===ch)).filter(Boolean):(S0[d.s]||[]);
+  if(d.s==='node'&&WRS_NODE)a=WRS_NODE.chars;if(!a.length)return toast('Chưa có chữ trong mục này');
+  const done=S.wr||{};const n=+d.n||10;const pick=d.s==='node'||d.s==='weak'?a:a.filter(x=>!done[x.ch]).concat(a.filter(x=>done[x.ch]).sort((x,y)=>(done[x.ch].ok/done[x.ch].n)-(done[y.ch].ok/done[y.ch].n)));
+  closeSheet(true);wrStart(d.ord==='rnd'?shuffle(pick).slice(0,n):pick.slice(0,n),d.m||'trace',WR_SETN[d.s]||'Luyện viết')}});
+let WRS_NODE=null;
+function wrOpen(sel){const S0=wrSets();const s=sel||S.wrSet||'hira';S.wrSet=s;const wk=Object.keys(S.wrWeak||{}).length;const cnt=x=>(S0[x]||[]).length;const learned=x=>(S0[x]||[]).filter(c=>S.wr&&S.wr[c.ch]).length;
+ $('#sheetHost').innerHTML=`<div class="scrim" data-act="scrim"><div class="sheet" role="dialog"><div class="grab"></div><div class="sh-top"><div style="flex:1"><h2>✍️ Luyện viết chữ Nhật</h2><div class="small mute">Viết bằng ngón tay / bút cảm ứng / chuột. Ưu tiên chữ bạn chưa luyện.</div></div><button class="x" style="font-size:26px;color:var(--mute)" data-act="closeSheet">✕</button></div>
+ <div class="tiny mute" style="font-weight:800;margin:6px 0">1 · CHỌN BỘ CHỮ</div><div style="display:flex;flex-wrap:wrap;gap:6px">${['hira','kata','n5','n4','n3','n2','n1'].map(x=>`<button class="btn ${x===s?'':'ghost'} sm" data-act="wrOpen" data-s="${x}">${WR_SETN[x]} <span class="tiny">${learned(x)}/${cnt(x)}</span></button>`).join('')}${wk?`<button class="btn ${s==='weak'?'':'ghost'} sm" data-act="wrOpen" data-s="weak">❗ Chữ hay viết sai (${wk})</button>`:''}</div>
+ <div class="tiny mute" style="font-weight:800;margin:12px 0 6px">2 · CHỌN CÁCH LUYỆN (10 chữ / lượt)</div>
+ ${Object.entries(WR_MODES).map(([m,[ic,t,sub]])=>`<button class="task" style="width:100%;text-align:left;border:0;background:none;cursor:pointer" data-act="wrGo" data-s="${s}" data-m="${m}" data-n="10"><div class="ti">${ic}</div><div class="tt"><h4 style="font-size:15px">${t}</h4><div class="tiny mute">${sub}</div></div><span class="btn sm">Bắt đầu</span></button>`).join('')}
+ <div class="tiny mute" style="margin-top:8px">Gợi ý: chữ mới → <b>Viết theo</b> → <b>Viết 10 lần</b>; hôm sau ôn bằng <b>Nhìn cách đọc rồi viết</b>.</div></div></div>`}
+/* gắn vào chặng học JLPT: luyện viết đúng chữ của chặng */
+(function(){const _o=openNode;openNode=function(gid,nid){_o(gid,nid);try{if(!/^jlpt-/.test(gid))return;const g=goalBy(gid),n=findNode(g,nid);if(!n||n.type!=='day')return;
+ const st=states(g).st[nid];if(st==='lock')return;const S0=wrSets();const its=(n.items||[]).filter(i=>(i.kind==='kana'||i.kind==='kanji')&&[...i.front].length===1);if(!its.length)return;
+ const chars=its.map(S0.toW);const sh=$('#sheetHost .sheet');if(!sh)return;const done=chars.filter(c=>S.wr&&S.wr[c.ch]).length;
+ sh.insertAdjacentHTML('beforeend',`<div style="margin-top:12px"><div class="tiny mute" style="font-weight:800;letter-spacing:.06em">✍️ LUYỆN VIẾT ${chars.length} CHỮ CỦA CHẶNG · đã viết ${done}/${chars.length}</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:6px">${Object.entries(WR_MODES).map(([m,[ic,t]])=>`<button class="btn ghost sm" data-act="wrNodeGo" data-g="${gid}" data-n="${nid}" data-m="${m}">${ic} ${t}</button>`).join('')}</div></div>`)}catch(e){}}})();
+ACT.wrNodeGo=d=>{const g=goalBy(d.g),n=findNode(g,d.n);const S0=wrSets();WRS_NODE={chars:(n.items||[]).filter(i=>(i.kind==='kana'||i.kind==='kanji')&&[...i.front].length===1).map(S0.toW)};closeSheet(true);wrStart(WRS_NODE.chars,d.m,'Chữ của '+n.label)};
+(function(){const _r=render;render=function(){if(V&&V.view==='write'){if(!WRS){V={view:'home'};return _r.apply(this,arguments)}try{renderStats()}catch(e){}return wrRender()}return _r.apply(this,arguments)}})();
+(function(){const st=document.createElement('style');st.textContent=`.wrbox{position:relative;width:min(300px,78vw);aspect-ratio:1;touch-action:none;user-select:none}.wrbox.sm{width:100%}
+.wrbox .wrgrid,.wrbox .wrguide,.wrbox canvas,.wrbox .wrreveal{position:absolute;inset:0;width:100%;height:100%}.wrbox canvas{cursor:crosshair}.wrbox .wrreveal{pointer-events:none}
+.wrten{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:620px;margin:0 auto}@media(max-width:560px){.wrten{grid-template-columns:repeat(3,1fr)}}
+.wrinfo{display:flex;gap:14px;align-items:center;justify-content:center}.wrbig{font-size:64px;line-height:1;font-weight:500}.wrfont{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:min(220px,58vw);color:#e3e5ec;line-height:1}.wrbox.sm .wrfont{font-size:12vw}`;document.head.appendChild(st)})();
+
+/* --- trang chủ gọn: việc hôm nay + mục tiêu lên đầu, các ô luyện tập gom một lưới --- */
+(function(){const _h=vHome;vHome=function(){let h=_h.apply(this,arguments);try{
+ const t=document.createElement('template');t.innerHTML=h;const kids=[...t.content.children];const cls=c=>kids.filter(e=>e.classList&&e.classList.contains(c));const take=c=>{const a=cls(c);a.forEach(e=>e.remove());return a};
+ const sub=kids.find(e=>/Đổi môn/.test(e.textContent||''));const mochi=kids.find(e=>/MOCHI CỦA BẠN/.test(e.textContent||''));const quote=cls('qcard')[0];const head=cls('hhead')[0];
+ const welcome=cls('welcome')[0];const cont=kids.filter(e=>(e.classList.contains('sec')&&/Tiếp tục học/.test(e.textContent))||e.classList.contains('ctrow'));
+ const goalsSec=kids.find(e=>e.classList.contains('sec')&&/Mục tiêu/.test(e.textContent));const gm=cls('gmgrid')[0];const tilesG=cls('tiles');const met=cls('met-cards')[0];const lib=kids.filter(e=>e.classList.contains('cont')&&e.classList.contains('card'));const src=kids.find(e=>e.classList.contains('tiny')&&/Nguồn/.test(e.textContent||''));
+ if(!gm||!head)return h;const used=new Set([sub,mochi,quote,head,welcome,...cont,goalsSec,gm,...tilesG,met,...lib,src].filter(Boolean));const rest=kids.filter(e=>!used.has(e));
+ if(welcome)welcome.querySelectorAll('a').forEach(()=>{});if(welcome&&S.subj==='jp')welcome.innerHTML=welcome.innerHTML.replace('lộ trình tiếng Anh','lộ trình tiếng Nhật');
+ const out=document.createElement('div');const add=(...a)=>a.filter(Boolean).forEach(e=>out.appendChild(e));
+ add(sub);const hero=document.createElement('div');hero.className='home-hero fx in';const L=document.createElement('div');L.className='hh-l';[head,welcome].filter(Boolean).forEach(e=>L.appendChild(e));hero.appendChild(L);if(mochi){mochi.classList.add('hh-r');hero.appendChild(mochi)}add(hero);
+ add(...cont);if(goalsSec)add(goalsSec);add(gm);
+ const sec2=document.createElement('div');sec2.className='sec fx in';sec2.innerHTML='<h2>Luyện tập & công cụ</h2>';add(sec2);
+ const grid=document.createElement('div');grid.className='tiles home-tiles fx in';if(S.subj==='jp'){const b=document.createElement('button');b.className='tile';b.dataset.act='wrOpen';b.innerHTML='<span class="ti-ic" style="background:linear-gradient(135deg,#ff9a9e,#e0556b)">✍️</span><b>Luyện viết chữ</b><span class="tiny mute">Kana & Kanji</span>';grid.appendChild(b)}
+ tilesG.forEach(tg=>[...tg.children].forEach(c=>grid.appendChild(c)));if(met){met.classList.add('home-met');grid.appendChild(met)}add(grid);
+ add(...lib,...rest);if(quote){quote.classList.add('home-quote');add(quote)}add(src);h=out.innerHTML}catch(e){}return h}})();
+(function(){const st=document.createElement('style');st.textContent=`.home-hero{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;align-items:stretch;margin-bottom:6px}.home-hero .hh-l{display:flex;flex-direction:column;gap:10px}.home-hero .hh-l>*{margin:0!important}.home-hero .hh-r{margin:0!important}
+@media(max-width:760px){.home-hero{grid-template-columns:1fr}}
+.home-tiles{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important;gap:10px!important}.home-tiles .home-met{grid-column:span 2;margin:0!important;min-height:0}.home-tiles .home-met>*{height:100%}
+.home-quote{margin-top:14px!important;opacity:.85}`;document.head.appendChild(st)})();
 {const l=document.getElementById("logoM");if(l)l.innerHTML=mochiSVG(42,"happy");}render(); setTimeout(initSync,0);
 if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})})}</script></body></html>
