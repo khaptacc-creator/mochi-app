@@ -4342,7 +4342,7 @@ function wrSets(){if(wrSets.c)return wrSets.c;const kana=new Map();
  const kv=[...kana.values()];const toW=i=>({ch:i.front,id:i.id,read:i.kind==='kana'?i.back:(i.reading||''),mean:i.kind==='kana'?'':(i.back||''),ex:i.example||'',kind:i.kind});
  const lv={n5:KJ_ITEMS};try{for(const k of ['n4','n3','n2','n1'])lv[k]=(JPL_ITEMS[k]&&JPL_ITEMS[k].K)||[]}catch(e){}
  return wrSets.c={hira:kv.filter(i=>/[぀-ゟ]/.test(i.front)).map(toW),kata:kv.filter(i=>/[゠-ヿ]/.test(i.front)).map(toW),
-  ...Object.fromEntries(Object.entries(lv).map(([k,a])=>[k,a.filter(i=>[...i.front].length===1).map(toW)])),toW}}
+  ...Object.fromEntries(Object.entries(lv).map(([k,a])=>[k,(a||[]).filter(i=>i&&typeof i.front==='string'&&[...i.front].length===1).map(toW)])),toW}}
 const WR_SETN={hira:'Hiragana',kata:'Katakana',n5:'Kanji N5',n4:'Kanji N4',n3:'Kanji N3',n2:'Kanji N2',n1:'Kanji N1',weak:'Chữ hay viết sai',node:'Chữ của chặng'};
 const WR_MODES={trace:['✍️','Viết theo','Tô theo nét mờ, xem thứ tự nét'],ten:['🔟','Viết 10 lần','3 ô có nét mờ + 7 ô tự viết, như vở tập viết'],mem:['🧠','Nhớ rồi viết','Xem chữ vài giây, ẩn đi, tự viết lại'],read:['👀','Nhìn cách đọc rồi viết','Chỉ thấy cách đọc + nghĩa, tự viết ra chữ']};
 /* --- thứ tự nét: KanjiVG (CC BY-SA 3.0) --- */
