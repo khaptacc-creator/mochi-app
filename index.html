@@ -2255,7 +2255,7 @@ function openNode(gid,nid){
    const desc=t==='test'?`${Math.min(n.n,n.items.length)} câu trộn (từ vựng${n.gq?' + ngữ pháp':''}) · ${T.need}`:`${T.desc} · <b>${esc(T.need)}</b>`;
    return `<div class="task ${dn?'done':''}"><div class="ti">${T.ic}</div><div class="tt"><h4>${i+1}. ${label}</h4><div class="small mute">${desc}${best!=null?` · Tốt nhất: ${best}${t==='match'?'s':t==='speed'||t==='rain'?' điểm':'%'}`:''}</div></div>
    ${dn?`<div class="tick">✓</div><button class="btn ghost sm" data-act="task" data-g="${gid}" data-n="${nid}" data-t="${t}">Làm lại</button>`:`<button class="btn sm" data-act="task" data-g="${gid}" data-n="${nid}" data-t="${t}">Bắt đầu</button>`}</div>`}).join('')}
-  ${n.type==='day'?`<details><summary>Xem ${n.items.length} ${n.items[0].kind==='kana'?'chữ':'từ'} của chặng này</summary><div class="words">${n.items.map(i=>`<span class="w ${S.weak[i.id]?'weak':''}" data-act="say" data-t="${esc(i.speak)}" data-l="${i.lang}"><b class="${isJa(i.front)?'ja':''}">${esc(i.front)}</b> <span class="mute">${esc(i.back)}</span></span>`).join('')}</div></details>`:''}`}
+  ${n.type==='day'?`<details><summary>Xem ${n.items.length} ${n.items[0].kind==='kana'?'chữ':'từ'} của chặng này</summary><div class="words">${n.items.map(i=>`<span class="w ${S.weak[i.id]?'weak':''}" data-act="say" data-t="${esc(i.speak)}" data-l="${i.lang}"><b class="${isJa(i.front)?'ja':''}">${jaFH(i)}</b> <span class="mute">${esc(i.back)}</span></span>`).join('')}</div></details>`:''}`}
  const ic=n.type==='mock'?'⭐':n.type==='day'?(n.no||'•'):n.type==='review'?'🛡️':n.type==='mid'?'📝':n.type==='final'?'🏆':'🔒';
  const kind=n.jpm!=null?'Thi thử trong app':n.type==='mock'?'Thi thử đề chính thức':n.type==='day'?'Nhiệm vụ trong ngày':n.type==='review'?'Kiểm tra ôn tập':n.type==='mid'?'Thi giữa kỳ':n.type==='final'?'Thi cuối kỳ':'Chưa mở';
  $('#sheetHost').innerHTML=`<div class="scrim th-${g.th}" data-act="scrim"><div class="sheet" role="dialog"><div class="grab"></div>
@@ -2267,7 +2267,7 @@ function openNode(gid,nid){
 function vWeak(){theme('jp');const idx=itemIndex();const items=Object.keys(S.weak).map(k=>idx.get(k)).filter(Boolean).sort((a,b)=>S.weak[b.id]-S.weak[a.id]);
  return `<h1 style="font-size:28px;font-weight:900">📕 Sổ lỗi sai</h1><p class="mute">Chữ/từ bạn trả lời sai sẽ vào đây. Trả lời đúng vài lần là tự rời sổ.</p>
  ${items.length?`<div class="row" style="flex-wrap:wrap;margin:14px 0"><button class="btn" data-act="weakgo" data-m="mcq">🎯 Ôn trắc nghiệm</button><button class="btn ghost" data-act="weakgo" data-m="cards">🃏 Lật thẻ</button>${items.length>=6?`<button class="btn ghost" data-act="weakgo" data-m="match">🧩 Ghép cặp</button>`:''}</div>
- <div class="card"><div class="words" style="margin:0">${items.map(i=>`<span class="w weak" data-act="say" data-t="${esc(i.speak)}" data-l="${i.lang}"><b class="${isJa(i.front)?'ja':''}">${esc(i.front)}</b> <span class="mute">${esc(i.back)}</span> <span class="tiny" style="color:var(--bad)">×${S.weak[i.id]}</span></span>`).join('')}</div></div>`
+ <div class="card"><div class="words" style="margin:0">${items.map(i=>`<span class="w weak" data-act="say" data-t="${esc(i.speak)}" data-l="${i.lang}"><b class="${isJa(i.front)?'ja':''}">${jaFH(i)}</b> <span class="mute">${esc(i.back)}</span> <span class="tiny" style="color:var(--bad)">×${S.weak[i.id]}</span></span>`).join('')}</div></div>`
  :`<div class="card" style="text-align:center;padding:40px"><div style="font-size:48px">🌱</div><h3>Sổ đang sạch!</h3><p class="mute">Làm nhiệm vụ trong lộ trình – từ nào sai sẽ được ghi lại ở đây.</p></div>`}`}
 
 /* ---------- import ---------- */
@@ -2295,7 +2295,7 @@ function vResult(){const r=V.r;const g=r.gid?goalBy(r.gid):null;theme(g?g.th:'jp
  <h1 style="font-size:28px;font-weight:900;margin-top:6px">${head}</h1><p class="mute" style="margin:6px 0 0">${T.ic} ${esc(r.title)}</p>
  ${r.need?`<div class="verdict ${r.pass?'pass':'fail'}">${r.pass?'✓ Đạt':'✗ Chưa đạt'} · yêu cầu ${esc(r.need)}</div>`:''}
  <div class="rstats"><div class="mini"><b>${r.stat}${unit}</b><span>kết quả</span></div><div class="mini"><b>+${r.xp}</b><span>XP</span></div><div class="mini"><b>🔥${r.maxCombo}</b><span>combo</span></div></div>
- ${r.wrong.length?`<div class="wl"><h3 style="font-size:16px">Cần ôn lại (${r.wrong.length})</h3>${r.wrong.map(i=>`<div><b class="${isJa(i.front)?'ja':''}">${esc(i.front)}</b><span class="mute">${esc(i.reading&&i.lang==='en-US'?i.reading+' · ':'')}${esc(i.back)}</span></div>`).join('')}</div>`:''}
+ ${r.wrong.length?`<div class="wl"><h3 style="font-size:16px">Cần ôn lại (${r.wrong.length})</h3>${r.wrong.map(i=>`<div><b class="${isJa(i.front)?'ja':''}">${jaFH(i)}</b><span class="mute">${esc(i.reading&&i.lang==='en-US'?i.reading+' · ':'')}${esc(i.back)}</span></div>`).join('')}</div>`:''}
  <div class="row" style="justify-content:center;flex-wrap:wrap;margin-top:22px">
   ${g?`<button class="btn ghost" data-act="toGoal" data-g="${g.id}" data-n="${r.nid}">${r.nodeDone?'Về lộ trình':'Về nhiệm vụ ngày'}</button>`:`<button class="btn ghost" data-act="weak">Về Sổ lỗi</button>`}
   <button class="btn ${r.pass?'ghost':''}" data-act="again">Làm lại</button>
@@ -2345,18 +2345,18 @@ function qNext(){
  if(k==='listen'){field='front';prompt=sayBtn(it)+`<div class="hint">Nghe và chọn đáp án đúng</div>`}
  else if(k==='blank'){field='front';const key=blankKey(it);prompt=`<div class="q sm ${isJa(it.example)?'ja':''}">${esc(it.example.replace(wre(key),'\u0000')).replace('\u0000','<span style="color:var(--acc);border-bottom:3px solid var(--acc);padding:0 18px">&nbsp;</span>')}</div><div class="hint">${it.exVi?'Dịch: '+esc(it.exVi):'Nghĩa: '+esc(it.back)}</div>`}
  else if(k==='mcqr'){field='front';prompt=`<div class="q ${it.back.length>14?'sm':'mid'}">${esc(it.back)}</div><div class="hint">${it.kind==='kana'?'Chữ nào đọc như vậy?':'Từ nào có nghĩa này?'}</div>`}
- else{field='back';prompt=`<div class="q ${it.front.length>8?'mid':''} ${isJa(it.front)?'ja':''}">${esc(it.front)}</div>${it.reading?`<div class="hint ${isJa(it.reading)?'ja':''}">${esc(it.reading)}${it.pos?' · '+esc(it.pos):''}</div>`:''}<div class="hint">${it.kind==='kana'?'Đọc là gì?':'Nghĩa là gì?'}</div>`}
+ else{field='back';prompt=`<div class="q ${it.front.length>8?'mid':''} ${isJa(it.front)?'ja':''}">${jaFH(it)}</div>${it.reading&&!jaV(it)?`<div class="hint ${isJa(it.reading)?'ja':''}">${esc(it.reading)}${it.pos?' · '+esc(it.pos):''}</div>`:jaV(it)&&it.pos?`<div class="hint">${esc(it.pos)}</div>`:''}<div class="hint">${it.kind==='kana'?'Đọc là gì?':'Nghĩa là gì?'}</div>`}
  let pool=k==='blank'?G.pool.filter(blankKey).concat(G.pool):G.pool;{const sm=pool.filter(o=>o.lang===it.lang&&o.kind===it.kind);if(sm.length>=4)pool=sm}
  const opts=[it],seen=new Set([norm(it[field])]);for(const o of shuffle(pool)){const kk=norm(o[field]);if(!seen.has(kk)){seen.add(kk);opts.push(o)}if(opts.length===4)break}
  G.cur={it,field,opts:shuffle(opts)};
- app().innerHTML=gTop()+tag+`<div class="card prompt">${prompt}</div><div class="opts">${G.cur.opts.map((o,j)=>`<button class="opt ${o[field].length>16?'long':''} ${isJa(o[field])?'ja':''}" data-act="ans" data-i="${j}">${esc(o[field])}</button>`).join('')}</div><div class="fb" id="fb"></div>`;
+ app().innerHTML=gTop()+tag+`<div class="card prompt">${prompt}</div><div class="opts">${G.cur.opts.map((o,j)=>`<button class="opt ${o[field].length>16?'long':''} ${isJa(o[field])?'ja':''}" data-act="ans" data-i="${j}">${field==='front'?jaFH(o):esc(o[field])}</button>`).join('')}</div><div class="fb" id="fb"></div>`;
  if(k==='listen')setTimeout(()=>say(it.speak,it.lang),250)}
 function exLine(it){return it.example&&G.k!=='blank'?`<div class="ex">${esc(it.reading&&it.lang==='en-US'?it.reading+' · ':'')}<i>${esc(it.example)}</i>${it.exVi?' — '+esc(it.exVi):''}</div>`:''}
 function score(it,ok){if(G&&G.mode==='place'&&G.qs[G.i])G.qs[G.i].ok=ok;mark(it,ok);if(ok){G.right++;G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);G.xp+=8+Math.min(G.combo,5)*2}else{G.combo=0;if(!G.wrong.includes(it))G.wrong.push(it)}beep(ok)}
 function answer(j,el){if(G.lock)return;G.lock=true;const{it,field,opts}=G.cur;const ok=norm(opts[j][field])===norm(it[field]);
  document.querySelectorAll('.opt').forEach((b,x)=>{if(norm(opts[x][field])===norm(it[field]))b.classList.add('ok')});if(!ok)el.classList.add('bad');score(it,ok);
- if(it.gq){$('#fb').innerHTML=`<span style="color:${ok?'var(--ok-d)':'var(--bad)'}">${ok?'Chính xác!':'Chưa đúng.'}</span><div class="ex ${isJa(it.front)?'ja':''}" style="font-size:15px;color:var(--ink)">${esc(it.front)}</div><div class="ex">${esc(it.back)}</div>`;const g=G;return setTimeout(()=>{if(G===g&&!g.dead){G.i++;qNext()}},ok?1300:2600)}
- $('#fb').innerHTML=(ok?`<span style="color:var(--ok-d)">Chính xác!</span>`:`<span style="color:var(--bad)">Đáp án: <span class="${isJa(it.front)?'ja':''}">${esc(it.front)}</span> = ${esc(it.back)}</span>`)+exLine(it);
+ if(it.gq){$('#fb').innerHTML=`<span style="color:${ok?'var(--ok-d)':'var(--bad)'}">${ok?'Chính xác!':'Chưa đúng.'}</span><div class="ex ${isJa(it.front)?'ja':''}" style="font-size:15px;color:var(--ink)">${jaFH(it)}</div><div class="ex">${esc(it.back)}</div>`;const g=G;return setTimeout(()=>{if(G===g&&!g.dead){G.i++;qNext()}},ok?1300:2600)}
+ $('#fb').innerHTML=(ok?`<span style="color:var(--ok-d)">Chính xác!</span>`:`<span style="color:var(--bad)">Đáp án: <span class="${isJa(it.front)?'ja':''}">${jaFH(it)}</span> = ${esc(it.back)}</span>`)+exLine(it);
  if(G.k!=='listen')say(it.speak,it.lang);const g=G;setTimeout(()=>{if(G===g&&!g.dead){G.i++;qNext()}},ok?800:1900)}
 function checkType(skip){if(G.lock)return;const{it}=G.qs[G.i];const el=$('#ti');const v=norm(deacc(el.value));if(!v&&!skip)return;G.lock=true;
  const ok=!skip&&it.alts.some(a=>norm(deacc(a))===v||norm(a)===norm(el.value));el.classList.add(ok?'ok':'bad');el.disabled=true;score(it,ok);
@@ -2365,7 +2365,7 @@ function checkType(skip){if(G.lock)return;const{it}=G.qs[G.i];const el=$('#ti');
 /* cards */
 function qCards(){if(G.i>=G.qs.length)return finish();const it=G.qs[G.i];G.flipped=false;
  app().innerHTML=gTop(`<div class="small" style="font-weight:800">${G.i+1}/${G.qs.length}</div>`)+`<div class="fwrap"><div class="flash" id="fc" data-act="flip">
-  <div class="face"><div class="big ${isJa(it.front)?'ja':''}">${esc(it.front)}</div>${it.reading?`<div class="ipa ${isJa(it.reading)?'ja':''}">${esc(it.reading)}${it.pos?' · '+esc(it.pos):''}</div>`:''}<div class="tap">Chạm để lật thẻ · 🔊 tự phát âm</div></div>
+  <div class="face"><div class="big ${isJa(it.front)?'ja':''}">${jaFH(it)}</div>${it.reading&&!jaV(it)?`<div class="ipa ${isJa(it.reading)?'ja':''}">${esc(it.reading)}${it.pos?' · '+esc(it.pos):''}</div>`:jaV(it)&&it.pos?`<div class="ipa">${esc(it.pos)}</div>`:''}<div class="tap">Chạm để lật thẻ · 🔊 tự phát âm</div></div>
   <div class="face back"><div class="big">${esc(it.back)}</div>${it.example?`<div class="exs"><i>${esc(it.example)}</i>${it.exVi?'<br>'+esc(it.exVi):''}</div>`:''}${it.syn?`<div class="exs" style="opacity:.85">≈ ${esc(it.syn.join(' · '))}</div>`:''}</div></div></div>
   <div class="fbtns" id="fbtns"><button class="btn ghost" data-act="flip">↻ Lật thẻ</button></div>`;
  say(it.speak,it.lang)}
@@ -2376,13 +2376,13 @@ function startSpeed(){G.qs=shuffle(G.pool);G.time=60;G.tick=setInterval(()=>{if(
 function qSpeed(){if(!G||G.time<=0)return;if(G.i>=G.qs.length)G.qs=G.qs.concat(shuffle(G.pool));const it=G.qs[G.i];G.lock=false;const field='back';
  const opts=[it],seen=new Set([norm(it.back)]);for(const o of shuffle(G.pool)){if(!seen.has(norm(o.back))){seen.add(norm(o.back));opts.push(o)}if(opts.length===4)break}G.cur={it,field,opts:shuffle(opts)};
  app().innerHTML=`<div class="gtop"><button class="x" data-act="quit">✕</button><div class="timer" id="tm">${G.time}s</div><div style="flex:1;text-align:center;font-weight:900">Điểm: ${G.right}</div><div class="combo">${G.combo>1?'🔥×'+G.combo:''}</div></div>
- <div class="card prompt"><div class="q ${it.front.length>8?'mid':''} ${isJa(it.front)?'ja':''}">${esc(it.front)}</div></div><div class="opts">${G.cur.opts.map((o,j)=>`<button class="opt ${o.back.length>16?'long':''}" data-act="sans" data-i="${j}">${esc(o.back)}</button>`).join('')}</div>`}
+ <div class="card prompt"><div class="q ${it.front.length>8?'mid':''} ${isJa(it.front)?'ja':''}">${jaFH(it)}</div></div><div class="opts">${G.cur.opts.map((o,j)=>`<button class="opt ${o.back.length>16?'long':''}" data-act="sans" data-i="${j}">${esc(o.back)}</button>`).join('')}</div>`}
 function speedAns(j,el){if(G.lock)return;G.lock=true;const{it,opts}=G.cur;const ok=norm(opts[j].back)===norm(it.back);el.classList.add(ok?'ok':'bad');score(it,ok);if(!ok)G.time=Math.max(0,G.time-3);const g=G;setTimeout(()=>{if(G===g&&!g.dead){G.i++;qSpeed()}},ok?200:500)}
 /* match */
 function startMatch(){const seen=new Set(),pk=[];for(const it of shuffle(G.pool)){const a=norm(it.back),b='f'+norm(it.front);if(seen.has(a)||seen.has(b))continue;seen.add(a);seen.add(b);pk.push(it);if(pk.length===6)break}
  G.pairs=pk;G.left=pk.length;G.sel=null;G.start=Date.now();G.qs=pk;
- G.tiles=shuffle(pk.flatMap((it,i)=>[{i,t:it.front},{i,t:it.back}]));
- app().innerHTML=`<div class="gtop"><button class="x" data-act="quit">✕</button><div style="flex:1;font-weight:800">Ghép từ với nghĩa</div><div class="timer" id="tm">0s</div></div><div class="mgrid">${G.tiles.map((x,k)=>`<button class="tile ${isJa(x.t)?'ja':''}" id="t${k}" style="${x.t.length>14?'font-size:14px':x.t.length>7?'font-size:17px':''}" data-act="tile" data-k="${k}">${esc(x.t)}</button>`).join('')}</div>`;
+ G.tiles=shuffle(pk.flatMap((it,i)=>[{i,t:it.front,f:1},{i,t:it.back}]));
+ app().innerHTML=`<div class="gtop"><button class="x" data-act="quit">✕</button><div style="flex:1;font-weight:800">Ghép từ với nghĩa</div><div class="timer" id="tm">0s</div></div><div class="mgrid">${G.tiles.map((x,k)=>`<button class="tile ${isJa(x.t)?'ja':''}" id="t${k}" style="${x.t.length>14?'font-size:14px':x.t.length>7?'font-size:17px':''}" data-act="tile" data-k="${k}">${x.f?jaFH(G.pairs[x.i]):esc(x.t)}</button>`).join('')}</div>`;
  G.tick=setInterval(()=>{const t=$('#tm');if(t&&G)t.textContent=Math.round((Date.now()-G.start)/1000)+'s'},500)}
 function tapTile(k){const el=$('#t'+k);if(!el||el.classList.contains('gone'))return;if(G.sel===k){el.classList.remove('sel');G.sel=null;return}
  if(G.sel==null){G.sel=k;el.classList.add('sel');const x=G.tiles[k];if(isJa(x.t))say(x.t,'ja-JP');else if(G.pairs[x.i].front===x.t)say(x.t,G.pairs[x.i].lang);return}
@@ -4274,6 +4274,34 @@ ACT.etsNode2=d=>{const g=goalBy(d.g),n=findNode(g,d.n);if(!g||!n)return;const P=
  sh.insertAdjacentHTML('beforeend',`<div style="margin-top:12px"><div class="tiny mute" style="font-weight:800;letter-spacing:.06em">ĐỀ ETS THẬT · ${esc(ETS_LV[P.lv].name)}</div>
   ${row('R','📘','Đọc ETS · ~'+P.nR+' câu','Part '+P.R.join(', ')+' · chọn câu chưa làm · có lời giải chi tiết',cR)}${row('L','🎧','Nghe ETS · ~'+P.nL+' câu','Part '+P.L.join(', ')+' · audio + transcript · có lời giải chi tiết',cL)}</div>`)}})();
 /* từ vựng & ngữ pháp hay gặp trong đề */
+
+/* ===== v33: furigana cho từ vựng tiếng Nhật – chỉ hiện trên chữ Hán CHƯA học; học xong chữ Hán nào thì từ sau không hiện furigana chữ đó nữa ===== */
+function jaV(it){return!!it&&it.lang==='ja-JP'&&it.kind!=='kanji'&&it.kind!=='kana'&&!!it.reading&&JPK_RE.test(it.front||'')}
+function jaKnown(){const s=new Set();const src=S.srs||{};for(const k in src){const m=/^(?:kj|j\d+k):(.+)$/.exec(k);if(m&&[...m[1]].length===1)s.add(m[1])}(S.kjKnown||[]).forEach(c=>s.add(c));return s}
+const JA_KRUN=/[一-鿿々〆ヶ]+|[^一-鿿々〆ヶ]+/g;
+function jaRdMap(){if(jaRdMap.m)return jaRdMap.m;const M={};const toH=x=>x.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+ const add=it=>{if(!it||!it.front||[...it.front].length!==1||!it.reading)return;const c=it.front;const set=M[c]=M[c]||new Set();
+  String(it.reading).split(/[\s\/、・,，;（）()]+/).forEach(x=>{x=toH(x.replace(/[-－]/g,'').split(/[.．]/)[0]).trim();if(!x||/[^ぁ-ゖー]/.test(x))return;set.add(x);
+   const v={か:'が',き:'ぎ',く:'ぐ',け:'げ',こ:'ご',さ:'ざ',し:'じ',す:'ず',せ:'ぜ',そ:'ぞ',た:'だ',ち:'ぢ',つ:'づ',て:'で',と:'ど',は:'ば',ひ:'び',ふ:'ぶ',へ:'べ',ほ:'ぼ'},pp={は:'ぱ',ひ:'ぴ',ふ:'ぷ',へ:'ぺ',ほ:'ぽ'};
+   if(v[x[0]])set.add(v[x[0]]+x.slice(1));if(pp[x[0]])set.add(pp[x[0]]+x.slice(1));if(x.length>1&&/[くきつちち]$/.test(x))set.add(x.slice(0,-1)+'っ')})};
+ try{(typeof KJ_ITEMS!=='undefined'?KJ_ITEMS:[]).forEach(add);Object.values(typeof JPL_ITEMS!=='undefined'?JPL_ITEMS:{}).forEach(L=>(L&&L.K||[]).forEach(add))}catch(e){}
+ return jaRdMap.m=M}
+function jaSplitRun(run,rd){/* tách cách đọc của cụm chữ Hán liền nhau theo từng chữ, dựa vào âm đọc đã biết; trả về mảng hoặc null */
+ const cs=[...run],M=jaRdMap();const go=(i,pos)=>{if(i===cs.length)return pos===rd.length?[]:null;const c=cs[i];
+  if(c==='々'&&i>0){for(const x of (M[cs[i-1]]||[])){if(rd.startsWith(x,pos)){const r=go(i+1,pos+x.length);if(r)return[x,...r]}}}
+  const cand=[...(M[c]||[])].filter(x=>rd.startsWith(x,pos)).sort((a,b)=>b.length-a.length);for(const x of cand){const r=go(i+1,pos+x.length);if(r)return[x,...r]}
+  if(!M[c]||!M[c].size){if(i===cs.length-1)return pos<rd.length?[rd.slice(pos)]:null;for(let L=1;L<=4&&pos+L<rd.length;L++){const r=go(i+1,pos+L);if(r)return[rd.slice(pos,pos+L),...r]}}return null};
+ return cs.length>1?go(0,0):null}
+function jaFuri(w,r,known){if(!w||!r||!JPK_RE.test(w)||JPK_RE.test(r))return esc(w);r=String(r).split(/\s*[／/、,;]\s*/)[0].trim();
+ const toH=x=>x.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));const er=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+ const segs=w.match(JA_KRUN)||[w];const kn=(c,p)=>!JPK_RE.test(c)||known.has(c)||(c==='々'&&p&&known.has(p));const unk=sg=>[...sg].some((c,i,a)=>!kn(c,a[i-1]));const rb=(a,b)=>`<ruby>${esc(a)}<rt>${esc(b)}</rt></ruby>`;
+ let m=null;try{m=new RegExp('^'+segs.map(sg=>JPK_RE.test(sg)?'(.+?)':er(toH(sg))).join('')+'$').exec(toH(r))}catch(e){}
+ if(!m)return unk(w)?rb(w,r):esc(w);let gi=1;
+ return segs.map(sg=>{if(!JPK_RE.test(sg))return esc(sg);const rd=m[gi++];if(!unk(sg))return esc(sg);const cs=[...sg];
+  if(cs.length>1&&cs.some((c,i)=>kn(c,cs[i-1]))){const sp=jaSplitRun(sg,rd);if(sp)return cs.map((c,i)=>kn(c,cs[i-1])?esc(c):rb(c,sp[i])).join('')}
+  return rb(sg,rd)}).join('')}
+function jaFH(it){if(!it)return'';return jaV(it)?jaFuri(it.front,it.reading,jaFH.k&&jaFH.t===Math.floor(Date.now()/800)?jaFH.k:(jaFH.t=Math.floor(Date.now()/800),jaFH.k=jaKnown())):esc(it.front||'')}
+(function(){const st=document.createElement('style');st.textContent='ruby{ruby-position:over}ruby rt{font-size:.5em;font-weight:600;color:var(--mute);letter-spacing:0;line-height:1}.opt ruby rt,.tile ruby rt{font-size:.55em}';document.head.appendChild(st)})();
 const ETS_STOP=new Set('a an the by as at in on of for to from with and or but if so be is are was were do does did have has had it its this that these those he she they we you i me my our your their his her them us man woman men women speaker speakers people person thing get got go went come make made say said tell told know think want like look see good new one two some any all more most very not no yes ok okay well just also then than there here what which who when where why how about up out over into'.split(' '));
 function etsFreq(){const B=ETS.bank;if(!B)return null;if(etsFreq.c&&etsFreq.c.n===B.tests.length)return etsFreq.c;
  const V={},G={};const txt=[];
