@@ -4445,5 +4445,49 @@ ACT.wrNodeGo=d=>{const g=goalBy(d.g),n=findNode(g,d.n);const S0=wrSets();WRS_NOD
 @media(max-width:760px){.home-hero{grid-template-columns:1fr}}
 .home-tiles{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important;gap:10px!important}.home-tiles .home-met{grid-column:span 2;margin:0!important;min-height:0}.home-tiles .home-met>*{height:100%}
 .home-quote{margin-top:14px!important;opacity:.85}`;document.head.appendChild(st)})();
+
+/* ===== v35: chia câu ETS theo trình độ thật trong từng giai đoạn – độ khó tính theo cấp CEFR của từ trong câu ===== */
+function wordLvMap(){if(wordLvMap.m)return wordLvMap.m;const m=new Map();const L={A1:1,A2:2,B1:3,B2:4,C1:5,C2:5};
+ for(const r of EN.W){const w=String(r[0]).toLowerCase();const v=L[r[6]]||4;if(!m.has(w)||m.get(w)>v)m.set(w,v)}return wordLvMap.m=m}
+function tokLv(t){const m=wordLvMap();if(m.has(t))return m.get(t);
+ for(const[s,r]of[['ies','y'],['ied','y'],['ing',''],['ing','e'],['ed',''],['ed','e'],['es',''],['s',''],['ly',''],['er',''],['est',''],['d','']])if(t.endsWith(s)){const b=t.slice(0,-s.length)+r;if(b.length>1&&m.has(b))return m.get(b)}
+ return 4.5}
+const ETS_EASY=new Set('a an the and or but if so as at by in on of for to from with into onto over under about after before during until than then there here this that these those it its he she they we you i me my our your their his her them us him who whom whose which what when where why how is are was were be been being am do does did done have has had having will would can could shall should may might must not no yes mr mrs ms dr ok please thank thanks hello hi one two three four five six seven eight nine ten first second third'.split(' '));
+function etsUnitText(u){const T=ETS.bank&&ETS.bank.tests.find(t=>t.id===u.t);if(!T)return'';const g=u.g||{};let s=[];
+ u.qs.forEach(n=>{const q=T.q[n];if(q)s.push(q.stem||'',...(q.o||[]),...(q.oT||[]),q.tq||'')});if(g.tr)s.push(g.tr);if(g.text)s.push(g.text);return s.join(' ')}
+function etsHard(u,band){/* tỉ lệ từ nội dung vượt cấp band (1=A1 … 5=C1) */const k=u.t+':'+u.qs[0]+':'+band.toFixed(2);etsHard.c=etsHard.c||{};if(k in etsHard.c)return etsHard.c[k];
+ const toks=(etsUnitText(u).match(/[A-Za-z][A-Za-z'’-]*/g)||[]);let n=0,h=0;
+ for(const raw of toks){if(/^[A-Z]/.test(raw)&&!wordLvMap().has(raw.toLowerCase()))continue;const t=raw.toLowerCase().replace(/[’']s$/,'').replace(/[’']/g,"'");if(t.length<2||ETS_EASY.has(t))continue;n++;if(tokLv(t)>band+0.25)h++}
+ return etsHard.c[k]=n?h/n:0}
+/* trình độ (band) của người học tại một chặng: tăng dần trong giai đoạn */
+function etsBand(g,n){const lv=+(/toeic-(\d)/.exec(g.id)||[0,2])[1];const all=pathOf(g).flatMap(u=>u.nodes);const days=all.filter(x=>x.type==='day');
+ const k=all.indexOf(n);const i=n.type==='day'?days.indexOf(n):all.slice(0,k).filter(x=>x.type==='day').length-1;const p=Math.max(0,i)/Math.max(1,days.length-1);return lv+p}
+function etsByLevel(units,band,k){/* ưu tiên câu chưa làm, rồi câu dễ nhất với trình độ hiện tại; chỉ lấy câu có ≤15% từ vượt trình độ, thiếu thì lấy câu gần nhất */
+ const seen=u=>u.qs.reduce((a,n)=>a+((S.etsSeen||{})[qk(u.t,n)]||0),0)/u.qs.length;
+ const sc=shuffle(units).map(u=>({u,h:etsHard(u,band),s:seen(u)}));const ok=sc.filter(x=>x.h<=0.15),rest=sc.filter(x=>x.h>0.15);
+ ok.sort((a,b)=>a.s-b.s||a.h-b.h);rest.sort((a,b)=>a.h-b.h||a.s-b.s);const ord=ok.concat(rest);const sel=[];let c=0;
+ for(const x of ord){if(c>=k)break;if(c+x.u.qs.length>k+2&&x.u.qs.length>1&&sel.length)continue;sel.push(x.u);c+=x.u.qs.length}
+ return{sel:sel.sort((a,b)=>a.p-b.p||a.qs[0]-b.qs[0]),fit:ok.length}}
+/* mức GĐ dự phòng cho câu chưa có lời giải gắn mức (theo vị trí câu trong đề ETS – đề xếp từ dễ đến khó) */
+function etsAutoLv(){const B=ETS.bank;if(!B||B._alv)return;B._alv=1;
+ const rl=n=>n<=110?1:n<=120?2:n<=126?3:n<=130?4:n<=138?2:n<=146?3:n<=160?2:n<=175?3:4;
+ const ll=n=>n<=6?1:n<=20?1:n<=31?2:n<=49?2:n<=70?3:n<=85?3:4;
+ for(const T of B.tests){for(const n in T.q){const q=T.q[n];if(!q.lv)q.lv=T.sk==='L'?ll(+n):rl(+n)}
+  for(const g of T.g||[]){if(!g.lv){const a=[];for(let n=g.from;n<=g.to;n++)if(T.q[n]&&T.q[n].lv)a.push(T.q[n].lv);g.lv=a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length):(T.sk==='L'?ll(g.from):rl(g.from))}}}}
+(function(){const _l=etsLoad;etsLoad=async function(){const r=await _l.apply(this,arguments);try{etsAutoLv();etsHard.c={}}catch(e){}return r}})();
+ACT.etsNode2=d=>{const g=goalBy(d.g),n=findNode(g,d.n);if(!g||!n)return;etsAutoLv();const P=etsNodePlan(g,n);const band=etsBand(g,n);
+ const pool=d.s==='L'?etsLUnits({parts:P.L,lv:P.lv}):etsUnits({parts:P.R,lv:P.lv});const{sel}=etsByLevel(pool,band,d.s==='L'?P.nL:P.nR);
+ if(!sel.length)return toast('Chưa có câu phù hợp trình độ này');S.etsNode=S.etsNode||{};S.etsNode[d.g+'|'+d.n+'|'+d.s]=today();save();
+ etsStart(sel,{title:(d.s==='L'?'🎧 Nghe ETS · ':'📘 Đọc ETS · ')+n.label})};
+(function(){const _o=openNode;openNode=function(gid,nid){_o(gid,nid);try{if(!/^toeic-\d/.test(gid)||!ETS.bank)return;const sh=$('#sheetHost .sheet');if(!sh)return;
+ const box=[...sh.querySelectorAll('.tiny')].find(e=>/ĐỀ ETS THẬT/.test(e.textContent));if(!box)return;const g=goalBy(gid),n=findNode(g,nid);const band=etsBand(g,n);
+ const nm=['','A1','A2','B1','B2','C1'];const lo=Math.floor(band),fr=band-lo;const lab=fr<0.34?nm[lo]:fr<0.67?nm[lo]+'–'+nm[Math.min(5,lo+1)]:nm[Math.min(5,lo+1)];
+ box.insertAdjacentHTML('afterend',`<div class="tiny mute" style="margin-top:2px">Câu được chọn theo vốn từ ở chặng này (≈ ${lab}): chặng đầu dễ, càng về sau càng khó.</div>`)}catch(e){}}})();
+/* câu ETS trong bài test tổng & bài ngữ pháp TOEIC: cũng xếp theo độ khó từ vựng */
+(function(){const _p=etsGqPick;etsGqPick=function(o,n){try{const gid=(etsGqPick.nd&&etsGqPick.gid)||(typeof G!=='undefined'&&G&&G.ctx&&G.ctx.gid)||(V&&V.g);const g=gid&&goalBy(gid);const nd=etsGqPick.nd||(g&&typeof G!=='undefined'&&G&&G.ctx&&G.ctx.nid&&findNode(g,G.ctx.nid));if(!g||!/^toeic-/.test(g.id))return _p(o,n);
+  const band=nd?etsBand(g,nd):(+g.id.slice(-1));const pool=etsGqPool(o);const sc=pool.map(x=>{const[t,q]=x.key.split('_');return{x,h:etsHard({t,qs:[+q]},band),s:(S.etsSeen||{})[x.key]||0}});
+  sc.sort((a,b)=>(a.h>0.15)-(b.h>0.15)||a.s-b.s||a.h-b.h);const a=sc.slice(0,n).map(y=>y.x);S.etsSeen=S.etsSeen||{};a.forEach(x=>S.etsSeen[x.key]=(S.etsSeen[x.key]||0)+1);
+  return a.map(x=>({q:x.q,lang:'en-US',ets:x.key}))}catch(e){return _p(o,n)}}})();
+(function(){const _d=dtGq;dtGq=function(n){etsGqPick.nd=n;etsGqPick.gid=V&&V.g;try{return _d(n)}finally{etsGqPick.nd=null}}})();
 {const l=document.getElementById("logoM");if(l)l.innerHTML=mochiSVG(42,"happy");}render(); setTimeout(initSync,0);
 if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})})}</script></body></html>
