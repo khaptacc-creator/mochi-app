@@ -2770,7 +2770,7 @@ function pathJP(lv){const L=JPL[lv],d=lv[1],{K,RV}=JPL_ITEMS[lv];const V=JPL_ITE
    units.push({title,sub,nodes});return nodes};
   W.forEach((w,k)=>{const nodes=block(w.t+' · Riki N3 Căn bản',`${w.V.length} từ vựng · ${(w.K||[]).length} kanji · ${(GR[w.t]||[]).length} bài ngữ pháp`,GR[w.t]||[],w.V,w.K||[],'w'+k);
    if(k===2)nodes.push({id:'mid',type:'mid',label:'Thi giữa kỳ',sub:'Tuần 1–11',items:all.slice(),gq:gq.slice(),n:40,tasks:['test']})});
-  block('Mở rộng · Ngữ pháp & từ bổ sung','Claude biên soạn thêm',EXT.map(i=>['j3g',i]),extraV,extraK,'x');
+  block('Mở rộng · Ngữ pháp & từ bổ sung','Claude biên soạn thêm',EXT.concat(L.gram.map((u,i)=>i).slice(20)).map(i=>['j3g',i]),extraV,extraK,'x');
   const mk=(id,lb,sub,note)=>({id,type:'mock',label:lb,sub,links:[L_JLPT],tasks:['mock'],note});
   units.push({title:'Về đích · Thi thử JLPT N3',sub:'Đề mẫu chính thức + đề luyện của Riki',nodes:[
    mk('mockA','Đề mẫu chính thức N3','jlpt.jp · thi thử 1',JP_MOCK.n3[0]+' Làm đúng giờ rồi nhập số câu đúng.'),
@@ -2799,7 +2799,7 @@ function pathJP(lv){const L=JPL[lv],d=lv[1],{K,RV}=JPL_ITEMS[lv];const V=JPL_ITE
    nodes.push({id:uid+'rv',type:'review',label:'Kiểm tra '+title.split(' · ')[0],sub:'Từ vựng · Kanji · Ngữ pháp',items:uIt,gq:uG,n:30,tasks:['test']});all.push(...uIt);gq.push(...uG);units.push({title,sub,nodes});return nodes};
   W.forEach((w,k)=>{const gs=(GR[w.t]||[]).map(i=>'j2R'+i);const nodes=block(w.t+' · Riki N2',`${w.V.length} từ vựng · ${w.K.length} kanji · ${gs.length} bài ngữ pháp Riki`,gs,w.V,w.K,'w'+k);
    if(k===2)nodes.push({id:'mid',type:'mid',label:'Thi giữa kỳ',sub:'Tuần 1–11',items:all.slice(),gq:gq.slice(),n:40,tasks:['test']})});
-  block('Mở rộng · Ngữ pháp & từ bổ sung','Claude biên soạn thêm',L.gram.map((u,i)=>'j2g'+i).slice(0,8),extraV,[],'x');
+  block('Mở rộng · Ngữ pháp & từ bổ sung','Claude biên soạn thêm',L.gram.map((u,i)=>'j2g'+i).slice(0,8).concat(L.gram.map((u,i)=>'j2g'+i).slice(16)),extraV,[],'x');
   const mk=(id,lb,sub,note)=>({id,type:'mock',label:lb,sub,links:[L_JLPT],tasks:['mock'],note});
   units.push({title:'Về đích · Thi thử JLPT N2',sub:'Đề mẫu chính thức + đề luyện của Riki',nodes:[mk('mockA','Đề mẫu chính thức N2','jlpt.jp · thi thử 1',JP_MOCK.n2[0]+' Làm đúng giờ rồi nhập số câu đúng.'),
    mk('mockB','Đề luyện Riki N2 (thư mục N2 LUYỆN ĐỀ ĐỌC HIỂU)','Thi thử 2','Làm đề trong thư mục Riki, đúng giờ 105′ + 50′, rồi nhập điểm.'),{id:'final',type:'final',label:'Thi cuối kỳ',sub:'Toàn bộ N2',items:all,gq,n:50,tasks:['test']}]});
