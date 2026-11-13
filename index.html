@@ -4515,5 +4515,15 @@ const EN_TOPIC_NAME={O:'Văn phòng & giấy tờ',H:'Nhân sự & nghề nghi�
  const _c=chunkUnits;chunkUnits=function(items,pre,o){const u=_c.apply(this,arguments);try{if(!o||!o.g||!o.g.tier)return u;
   u.forEach(U=>U.nodes.forEach(n=>{if(n.type!=='day'||!n.items)return;const c={};n.items.forEach(it=>{const k=EN_TOPIC[W2I.get(it.id)]||'G';c[k]=(c[k]||0)+1});
    const top=Object.entries(c).filter(([k])=>k!=='G').sort((a,b)=>b[1]-a[1]);const pc={};n.items.forEach(it=>{const i=W2I.get(it.id);const p=String(EN.W[i]&&EN.W[i][2]||'');const k=/^v\b|^v\./.test(p)?'v':/^n\b|^n\./.test(p)?'n':/^(adj|adv)/.test(p)?'a':'o';pc[k]=(pc[k]||0)+1});const pm=Object.entries(pc).sort((a,b)=>b[1]-a[1])[0];const gname=pm&&pm[1]>=10?{v:'Động từ thông dụng',n:'Danh từ thông dụng',a:'Tính từ & trạng từ',o:'Từ thông dụng'}[pm[0]]:EN_TOPIC_NAME.G;const tt=top.filter(x=>x[1]>=3);const name=tt.length?(tt[0][1]>=12||tt.length===1?EN_TOPIC_NAME[tt[0][0]]:tt.slice(0,3).map(x=>EN_TOPIC_NAME[x[0]].split(' & ')[0]).join(' · ')):gname;n.topic=name;n.sub=name+' · '+n.sub}))}catch(e){}return u}})();
+/* v39b: rải đủ bài đọc/nghe JLPT vào các ngày học */
+(function(){const _p=pathOf;pathOf=function(g){const u=_p.apply(this,arguments);try{const m=g&&String(g.id||'').match(/^jlpt-n([1-5])$/);if(!m||u.__rl)return u;const d=m[1],lv='n'+d;
+ const pre=d==='5'?['jr','jl']:['j'+d+'r','j'+d+'l'];const nR=d==='5'?JP_READ.length:JPL[lv].read.length,nL=d==='5'?JP_LISTEN.length:JPL[lv].listen.length;
+ const nodes=u.flatMap(U=>U.nodes||[]);const used=new Set(nodes.flatMap(n=>n.tasks||[]));
+ const R=[...Array(nR).keys()].map(i=>'sk:'+pre[0]+i).filter(x=>!used.has(x)&&SK[x.slice(3)]),L=[...Array(nL).keys()].map(i=>'sk:'+pre[1]+i).filter(x=>!used.has(x)&&SK[x.slice(3)]);
+ const days=nodes.filter(n=>n.type==='day'&&(n.items||[]).some(i=>i&&(i.kind==='vocab'||i.kind==='kanji'))&&!(n.tasks||[]).some(t=>new RegExp('^sk:'+pre[0]+'\\d|^sk:'+pre[1]+'\\d').test(t)));
+ let k=0;const q=[];while(R.length||L.length){if(L.length)q.push(L.shift());if(R.length)q.push(R.shift())}
+ const step=Math.max(1,Math.floor(days.length/Math.max(1,q.length)));for(let i=0;i<days.length&&k<q.length;i+=step){days[i].tasks=(days[i].tasks||[]).concat(q[k++])}
+ for(let i=0;k<q.length&&i<days.length;i++){if(!days[i].tasks.some(t=>/^sk:j\d?[rl]\d/.test(t)))days[i].tasks=days[i].tasks.concat(q[k++])}
+ u.__rl=1}catch(e){console.warn(e)}return u}})();
 {const l=document.getElementById("logoM");if(l)l.innerHTML=mochiSVG(42,"happy");}render(); setTimeout(initSync,0);
 if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})})}</script></body></html>
